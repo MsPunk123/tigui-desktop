@@ -16,8 +16,10 @@ Target structure:
 src/
   main/
     ipc/
-      handlers/
+      connections/
+      system/
     services/
+      <feature>/
     windows/
   preload/
     bridge/
@@ -38,8 +40,12 @@ src/
       constants/
   shared/
     ipc/
-    constants/
-    types/
+      channels.ts
+      bridge.ts
+    <feature>/
+      types.ts
+      results.ts
+      index.ts
 ```
 
 Naming conventions:
@@ -47,6 +53,7 @@ Naming conventions:
 - Files: kebab-case for utilities and config files, PascalCase for React components.
 - Features: domain names (`accounts`, `transfers`, `session`), not UI names (`table1`, `screenA`).
 - Entry points: each feature exposes public API via `index.ts`.
+- Keep `shared` contracts split by domain (`shared/connections`, `shared/transfers`, etc.); avoid adding unrelated types to a single file.
 
 ## 2) Process Boundaries and Dependency Rules
 
@@ -149,7 +156,26 @@ Non-blocking architecture checklist for each PR:
 - [ ] No hardcoded endpoints/ports/timeouts/limits/channel strings.
 - [ ] IPC additions update shared typed contracts before preload exposure.
 
-## 7) UI Design System and Consistency Rules
+## 7) Scalability Guardrails (Prevent God Files Early)
+
+Module responsibility rules:
+
+- One module should have one primary responsibility.
+- Keep orchestration in one file and move validation/testing/persistence into focused modules.
+- Prefer `hooks + mappers + components` split in renderer feature folders once a file starts mixing concerns.
+
+File size guidance:
+
+- Soft cap: ~150-200 LOC per module.
+- If a file crosses the soft cap and has mixed responsibilities, split it before adding new feature logic.
+- Exceptions: shared UI primitives, token files, and generated files.
+
+Import hygiene:
+
+- Use feature-local imports first; only promote to `renderer/shared` or `shared/*` when used by 2+ features.
+- Keep compatibility wrappers small (single re-export), and avoid adding logic to wrapper files.
+
+## 8) UI Design System and Consistency Rules
 
 Primary stack:
 
