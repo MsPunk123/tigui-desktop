@@ -10,6 +10,7 @@ Architecture and coding standards are defined in [docs/DEVELOPER_GUIDE.md](docs/
 
 - Electron Forge + Vite
 - React 19 + TypeScript
+- Tailwind CSS + shadcn-style shared UI primitives
 - ESLint + Prettier
 - Vitest + Testing Library
 - Husky + lint-staged

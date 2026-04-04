@@ -11,7 +11,18 @@
     "sourceMap": true,
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "types": ["node", "vite/client"]
   },
-  "include": ["src", "forge.config.ts", "forge.env.d.ts", "vite.*.config.ts", "vitest.config.ts"]
+  "include": [
+    "src",
+    "forge.config.ts",
+    "forge.env.d.ts",
+    "vite.*.config.ts",
+    "vite.*.config.mts",
+    "vitest.config.ts"
+  ]
 }

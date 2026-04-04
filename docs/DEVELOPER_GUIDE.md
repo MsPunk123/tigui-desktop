@@ -148,3 +148,23 @@ Non-blocking architecture checklist for each PR:
 - [ ] New config values are added to `.env.example`.
 - [ ] No hardcoded endpoints/ports/timeouts/limits/channel strings.
 - [ ] IPC additions update shared typed contracts before preload exposure.
+
+## 7) UI Design System and Consistency Rules
+
+Primary stack:
+
+- Tailwind + semantic CSS variables in `src/index.css` are the single source of truth for visual tokens.
+- Shared primitives live in `src/renderer/shared/components/ui`.
+- Feature code should consume primitives through `@/renderer/shared/components/ui`.
+
+Component API conventions:
+
+- Reusable controls expose `variant` and `size` props where practical.
+- Feature code should prefer component props over custom ad-hoc class overrides.
+- `cn` from `@/renderer/shared/lib/cn` is the only class merge helper.
+
+Style and accessibility conventions:
+
+- Raw color literals (`#hex`, `rgb`, `hsl`) are allowed only in token files.
+- Shared controls must include visible focus treatment and keyboard accessibility.
+- Interactive controls should keep stable labels and semantics for testing (`role`, accessible name, `aria-*` where needed).
