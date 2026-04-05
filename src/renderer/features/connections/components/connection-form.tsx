@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import {
@@ -169,7 +170,8 @@ export const ConnectionForm = ({
                     {values.replicaUrls.length > 1 ? (
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="outline"
+                        size="icon"
                         onClick={() =>
                           setValues((prev) => ({
                             ...prev,
@@ -177,7 +179,7 @@ export const ConnectionForm = ({
                           }))
                         }
                       >
-                        Remove
+                        <X />
                       </Button>
                     ) : null}
                   </div>
@@ -255,7 +257,8 @@ export const ConnectionForm = ({
                       />
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="outline"
+                        size="icon"
                         onClick={() => {
                           const next = values.secrets.filter(
                             (_, secretIndex) => secretIndex !== index,
@@ -263,7 +266,7 @@ export const ConnectionForm = ({
                           setValues((prev) => ({ ...prev, secrets: next }));
                         }}
                       >
-                        Remove
+                        <X />
                       </Button>
                     </div>
                   </Field>

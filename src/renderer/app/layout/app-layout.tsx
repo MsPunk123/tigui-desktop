@@ -12,6 +12,7 @@ type AppLayoutProps = {
   modules: AppModuleDefinition[];
   activeModuleId: string;
   onNavigateModuleRoute: (route: string) => void;
+  topbarTabs: ReactNode;
   sidebarContent: ReactNode;
   topbarContent: ReactNode;
   content: ReactNode;
@@ -22,6 +23,7 @@ export const AppLayout = ({
   modules,
   activeModuleId,
   onNavigateModuleRoute,
+  topbarTabs,
   sidebarContent,
   topbarContent,
   content,
@@ -51,7 +53,7 @@ export const AppLayout = ({
           <div className="min-h-0 flex-1">{sidebarContent}</div>
         </>
       }
-      topbar={<AppTopbar>{topbarContent}</AppTopbar>}
+      topbar={<AppTopbar tabs={topbarTabs}>{topbarContent}</AppTopbar>}
       content={<AppContent>{content}</AppContent>}
     />
   );
