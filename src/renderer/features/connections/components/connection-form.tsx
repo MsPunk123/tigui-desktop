@@ -1,6 +1,17 @@
 import { useMemo, useState } from 'react';
 
-import { Button } from '@/renderer/shared/components/ui';
+import {
+  Button,
+  Checkbox,
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+  Input,
+} from '@/renderer/shared/components/ui';
 
 export type ConnectionFormValues = {
   name: string;
@@ -18,9 +29,6 @@ type ConnectionFormProps = {
   onSubmit: (values: ConnectionFormValues) => void;
   isSubmitting?: boolean;
 };
-
-const baseInputClassName =
-  'h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring';
 
 const emptySecret = () => ({ key: '', value: '' });
 
@@ -53,6 +61,7 @@ export const ConnectionForm = ({
   isSubmitting = false,
 }: ConnectionFormProps) => {
   const [values, setValues] = useState<ConnectionFormValues>(initialValues);
+  const secretCheckboxId = 'connection-set-default';
 
   const replicaUrlErrors = useMemo(() => {
     return values.replicaUrls.map((item) => {
@@ -95,199 +104,203 @@ export const ConnectionForm = ({
 
   return (
     <form
-      className="space-y-4"
+      className="space-y-5"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit(values);
       }}
     >
-      <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="connection-name">
-          Connection Name
-        </label>
-        <input
-          id="connection-name"
-          className={baseInputClassName}
-          value={values.name}
-          onChange={(event) => setValues((prev) => ({ ...prev, name: event.target.value }))}
-          placeholder="Production Cluster"
-        />
-      </div>
+      <FieldGroup>
+        <FieldSet>
+          <Field>
+            <FieldLabel htmlFor="connection-name">Connection Name</FieldLabel>
+            <Input
+              id="connection-name"
+              value={values.name}
+              onChange={(event) => setValues((prev) => ({ ...prev, name: event.target.value }))}
+              placeholder="Production Cluster"
+            />
+          </Field>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="cluster-id">
-          Cluster ID
-        </label>
-        <input
-          id="cluster-id"
-          className={baseInputClassName}
-          value={values.clusterId}
-          onChange={(event) => setValues((prev) => ({ ...prev, clusterId: event.target.value }))}
-          placeholder="0"
-        />
-      </div>
+          <Field>
+            <FieldLabel htmlFor="cluster-id">Cluster ID</FieldLabel>
+            <Input
+              id="cluster-id"
+              value={values.clusterId}
+              onChange={(event) =>
+                setValues((prev) => ({ ...prev, clusterId: event.target.value }))
+              }
+              placeholder="0"
+            />
+          </Field>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">Replica URLs</p>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              setValues((prev) => ({
-                ...prev,
-                replicaUrls: [...prev.replicaUrls, ''],
-              }))
-            }
-          >
-            +
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          {values.replicaUrls.map((replicaUrl, index) => (
-            <div key={index} className="space-y-1">
-              <div className="grid gap-2 md:grid-cols-[1fr_auto]">
-                <input
-                  className={baseInputClassName}
-                  value={replicaUrl}
-                  onChange={(event) => {
-                    const next = [...values.replicaUrls];
-                    next[index] = event.target.value;
-                    setValues((prev) => ({ ...prev, replicaUrls: next }));
-                  }}
-                  placeholder="http://127.0.0.1:3001"
-                />
-                {values.replicaUrls.length > 1 ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() =>
-                      setValues((prev) => ({
-                        ...prev,
-                        replicaUrls: prev.replicaUrls.filter((_, row) => row !== index),
-                      }))
-                    }
-                  >
-                    Remove
-                  </Button>
-                ) : null}
-              </div>
-              {replicaUrlErrors[index] ? (
-                <p className="text-xs text-destructive">{replicaUrlErrors[index]}</p>
-              ) : null}
+          <Field>
+            <div className="flex items-center justify-between gap-3">
+              <FieldLabel>Replica URLs</FieldLabel>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setValues((prev) => ({
+                    ...prev,
+                    replicaUrls: [...prev.replicaUrls, ''],
+                  }))
+                }
+              >
+                Add URL
+              </Button>
             </div>
-          ))}
-        </div>
-        {hasDuplicateReplicaUrls ? (
-          <p className="text-xs text-destructive">
-            Duplicate replica URLs are not allowed after normalization.
-          </p>
-        ) : null}
-        <p className="text-xs text-muted-foreground">
-          Only `http://` or `https://` URLs are accepted, and each URL must include a host and port.
-        </p>
-      </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="environment-tag">
-          Environment Tag (Optional)
-        </label>
-        <input
-          id="environment-tag"
-          className={baseInputClassName}
-          value={values.environmentTag}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, environmentTag: event.target.value }))
-          }
-          placeholder="local / staging / prod"
-        />
-      </div>
+            <FieldGroup className="gap-2">
+              {values.replicaUrls.map((replicaUrl, index) => (
+                <Field key={index}>
+                  <div className="grid gap-2 md:grid-cols-[1fr_auto]">
+                    <Input
+                      aria-invalid={replicaUrlErrors[index] ? true : undefined}
+                      value={replicaUrl}
+                      onChange={(event) => {
+                        const next = [...values.replicaUrls];
+                        next[index] = event.target.value;
+                        setValues((prev) => ({ ...prev, replicaUrls: next }));
+                      }}
+                      placeholder="http://127.0.0.1:3001"
+                    />
+                    {values.replicaUrls.length > 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() =>
+                          setValues((prev) => ({
+                            ...prev,
+                            replicaUrls: prev.replicaUrls.filter((_, row) => row !== index),
+                          }))
+                        }
+                      >
+                        Remove
+                      </Button>
+                    ) : null}
+                  </div>
+                  <FieldError>{replicaUrlErrors[index]}</FieldError>
+                </Field>
+              ))}
+            </FieldGroup>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">Secrets (Optional)</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setValues((prev) => ({
-                ...prev,
-                secrets: [...prev.secrets, emptySecret()],
-              }))
-            }
-          >
-            Add Secret
-          </Button>
-        </div>
+            <FieldError>
+              {hasDuplicateReplicaUrls
+                ? 'Duplicate replica URLs are not allowed after normalization.'
+                : null}
+            </FieldError>
+            <FieldDescription>
+              Only `http://` or `https://` URLs are accepted, and each URL must include a host and
+              port.
+            </FieldDescription>
+          </Field>
 
-        {values.secrets.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No secrets configured.</p>
-        ) : (
-          <div className="space-y-2">
-            {values.secrets.map((secret, index) => (
-              <div key={index} className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
-                <input
-                  className={baseInputClassName}
-                  value={secret.key}
-                  onChange={(event) => {
-                    const next = [...values.secrets];
-                    next[index] = { ...next[index], key: event.target.value };
-                    setValues((prev) => ({ ...prev, secrets: next }));
-                  }}
-                  placeholder="api_key"
-                />
-                <input
-                  className={baseInputClassName}
-                  value={secret.value}
-                  type="password"
-                  onChange={(event) => {
-                    const next = [...values.secrets];
-                    next[index] = { ...next[index], value: event.target.value };
-                    setValues((prev) => ({ ...prev, secrets: next }));
-                  }}
-                  placeholder="value"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    const next = values.secrets.filter((_, secretIndex) => secretIndex !== index);
-                    setValues((prev) => ({ ...prev, secrets: next }));
-                  }}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          <Field>
+            <FieldLabel htmlFor="environment-tag">Environment Tag (Optional)</FieldLabel>
+            <Input
+              id="environment-tag"
+              value={values.environmentTag}
+              onChange={(event) =>
+                setValues((prev) => ({ ...prev, environmentTag: event.target.value }))
+              }
+              placeholder="local / staging / prod"
+            />
+          </Field>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={values.setAsDefault}
-          onChange={(event) =>
-            setValues((prev) => ({
-              ...prev,
-              setAsDefault: event.target.checked,
-            }))
-          }
-        />
-        Set as default connection
-      </label>
+          <Field>
+            <div className="flex items-center justify-between gap-3">
+              <FieldLabel>Secrets (Optional)</FieldLabel>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setValues((prev) => ({
+                    ...prev,
+                    secrets: [...prev.secrets, emptySecret()],
+                  }))
+                }
+              >
+                Add Secret
+              </Button>
+            </div>
 
-      <div className="flex items-center gap-2">
-        <Button type="submit" disabled={!canSubmit || isSubmitting}>
-          {submitLabel}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
+            {values.secrets.length === 0 ? (
+              <FieldDescription>No secrets configured.</FieldDescription>
+            ) : (
+              <FieldGroup className="gap-2">
+                {values.secrets.map((secret, index) => (
+                  <Field key={index}>
+                    <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+                      <Input
+                        value={secret.key}
+                        onChange={(event) => {
+                          const next = [...values.secrets];
+                          next[index] = { ...next[index], key: event.target.value };
+                          setValues((prev) => ({ ...prev, secrets: next }));
+                        }}
+                        placeholder="api_key"
+                      />
+                      <Input
+                        value={secret.value}
+                        type="password"
+                        onChange={(event) => {
+                          const next = [...values.secrets];
+                          next[index] = { ...next[index], value: event.target.value };
+                          setValues((prev) => ({ ...prev, secrets: next }));
+                        }}
+                        placeholder="value"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          const next = values.secrets.filter(
+                            (_, secretIndex) => secretIndex !== index,
+                          );
+                          setValues((prev) => ({ ...prev, secrets: next }));
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </Field>
+                ))}
+              </FieldGroup>
+            )}
+          </Field>
+
+          <Field orientation="horizontal">
+            <Checkbox
+              id={secretCheckboxId}
+              checked={values.setAsDefault}
+              onCheckedChange={(checked) =>
+                setValues((prev) => ({
+                  ...prev,
+                  setAsDefault: checked === true,
+                }))
+              }
+            />
+            <FieldContent>
+              <FieldLabel htmlFor={secretCheckboxId}>Set as default connection</FieldLabel>
+              <FieldDescription>
+                This connection will be preferred when a default target is needed.
+              </FieldDescription>
+            </FieldContent>
+          </Field>
+
+          <Field orientation="horizontal" className="pt-1">
+            <Button type="submit" disabled={!canSubmit || isSubmitting}>
+              {submitLabel}
+            </Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          </Field>
+        </FieldSet>
+      </FieldGroup>
     </form>
   );
 };
