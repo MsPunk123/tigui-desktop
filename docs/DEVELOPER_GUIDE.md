@@ -183,10 +183,16 @@ Primary stack:
 - Tailwind + semantic CSS variables in `src/index.css` are the single source of truth for visual tokens.
 - Shared primitives live in `src/renderer/shared/components/ui`.
 - Feature code should consume primitives through `@/renderer/shared/components/ui`.
+- All top-level renderer screens must compose through `AppShell` using a typed layout config contract.
+- Use `lucide-react` as the standard icon library for renderer controls and status icons.
+- `App.tsx` is the platform workbench owner (`routing + module registry + app layout composition`), not a feature page.
+- Features must plug into app layout regions (sidebar/topbar/content) and must not own the global shell.
+- Top-level module navigation must be URL-driven (`react-router-dom`) with module definitions registered in a typed module registry.
 
 Component API conventions:
 
 - Reusable controls expose `variant` and `size` props where practical.
+- Prefer passing stronger props (`variant`, `size`, `pressed`, `disabled`, state attrs) to existing shared components before adding new primitives.
 - Feature code should prefer component props over custom ad-hoc class overrides.
 - `cn` from `@/renderer/shared/lib/cn` is the only class merge helper.
 

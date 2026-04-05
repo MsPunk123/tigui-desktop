@@ -5,7 +5,7 @@ export type ConnectionProfile = {
   addresses: string[];
   environmentTag?: string;
   isDefault: boolean;
-  isActive: boolean;
+  isConnected: boolean;
   lastUsedAt?: string;
   createdAt: string;
   updatedAt: string;

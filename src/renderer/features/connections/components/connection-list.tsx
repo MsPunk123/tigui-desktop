@@ -3,8 +3,8 @@ import type { ConnectionProfile } from '@/shared/connections';
 
 type ConnectionListProps = {
   profiles: ConnectionProfile[];
-  activeConnectionId: string | null;
-  onActivate: (profile: ConnectionProfile) => void;
+  connectedConnectionIds: string[];
+  onConnect: (profile: ConnectionProfile) => void;
   onTest: (profile: ConnectionProfile) => void;
   onEdit: (profile: ConnectionProfile) => void;
   onDelete: (profile: ConnectionProfile) => void;
@@ -12,8 +12,8 @@ type ConnectionListProps = {
 
 export const ConnectionList = ({
   profiles,
-  activeConnectionId,
-  onActivate,
+  connectedConnectionIds,
+  onConnect,
   onTest,
   onEdit,
   onDelete,
@@ -31,9 +31,9 @@ export const ConnectionList = ({
                     default
                   </span>
                 ) : null}
-                {profile.id === activeConnectionId ? (
+                {connectedConnectionIds.includes(profile.id) ? (
                   <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
-                    active
+                    connected
                   </span>
                 ) : null}
               </div>
@@ -45,13 +45,11 @@ export const ConnectionList = ({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() => onActivate(profile)}
-                disabled={profile.id === activeConnectionId}
-              >
-                Activate
-              </Button>
+              {!connectedConnectionIds.includes(profile.id) ? (
+                <Button variant="outline" onClick={() => onConnect(profile)}>
+                  Connect
+                </Button>
+              ) : null}
               <Button variant="outline" onClick={() => onTest(profile)}>
                 Test
               </Button>

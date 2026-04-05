@@ -17,6 +17,7 @@ export class ConnectionStore {
   private readonly persistence: ConnectionPersistence;
   private readonly secretsStore: ConnectionSecretsStore;
   private readonly tester: ConnectionTester;
+  private readonly connectedConnectionIds = new Set<string>();
 
   constructor(appDataPath: string) {
     this.persistence = new ConnectionPersistence(appDataPath);
@@ -26,23 +27,13 @@ export class ConnectionStore {
 
   async listConnections(): Promise<ConnectionProfile[]> {
     const state = await this.persistence.readState();
-    return state.profiles.map((profile) => ({
-      ...profile,
-      isActive: state.activeConnectionId === profile.id,
-    }));
+    return state.profiles.map((profile) => this.toConnectionProfile(profile));
   }
 
-  async getActiveConnection(): Promise<ConnectionProfile | null> {
+  async getConnectedConnectionIds(): Promise<string[]> {
     const state = await this.persistence.readState();
-    const activeProfile = state.profiles.find((profile) => profile.id === state.activeConnectionId);
-    if (!activeProfile) {
-      return null;
-    }
-
-    return {
-      ...activeProfile,
-      isActive: true,
-    };
+    const profileIds = new Set(state.profiles.map((profile) => profile.id));
+    return [...this.connectedConnectionIds].filter((id) => profileIds.has(id));
   }
 
   async createConnection(input: ConnectionProfileInput): Promise<ConnectionOperationResult> {
@@ -74,19 +65,12 @@ export class ConnectionStore {
     }
 
     state.profiles.push(profile);
-    if (!state.activeConnectionId) {
-      state.activeConnectionId = profile.id;
-    }
-
     await this.persistence.writeState(state);
     await this.secretsStore.save(profile.id, input.secrets ?? {});
 
     return {
       ok: true,
-      profile: {
-        ...profile,
-        isActive: state.activeConnectionId === profile.id,
-      },
+      profile: this.toConnectionProfile(profile),
     };
   }
 
@@ -143,10 +127,7 @@ export class ConnectionStore {
 
     return {
       ok: true,
-      profile: {
-        ...updated,
-        isActive: state.activeConnectionId === updated.id,
-      },
+      profile: this.toConnectionProfile(updated),
     };
   }
 
@@ -161,9 +142,7 @@ export class ConnectionStore {
     }
 
     state.profiles = state.profiles.filter((profile) => profile.id !== id);
-    if (state.activeConnectionId === id) {
-      state.activeConnectionId = state.profiles[0]?.id ?? null;
-    }
+    this.connectedConnectionIds.delete(id);
     if (existing.isDefault && state.profiles.length > 0) {
       state.profiles[0] = {
         ...state.profiles[0],
@@ -177,9 +156,9 @@ export class ConnectionStore {
     return { ok: true };
   }
 
-  async activateConnection(
+  async connectConnection(
     id: string,
-  ): Promise<{ ok: true; activeConnectionId: string } | { ok: false; message: string }> {
+  ): Promise<{ ok: true; connectedConnectionIds: string[] } | { ok: false; message: string }> {
     const state = await this.persistence.readState();
     const selected = state.profiles.find((profile) => profile.id === id);
     if (!selected) {
@@ -189,7 +168,7 @@ export class ConnectionStore {
       };
     }
 
-    state.activeConnectionId = selected.id;
+    this.connectedConnectionIds.add(selected.id);
     state.profiles = state.profiles.map((profile) =>
       profile.id === selected.id
         ? {
@@ -202,7 +181,7 @@ export class ConnectionStore {
 
     return {
       ok: true,
-      activeConnectionId: selected.id,
+      connectedConnectionIds: [...this.connectedConnectionIds],
     };
   }
 
@@ -240,6 +219,13 @@ export class ConnectionStore {
           : 'One or more replica addresses are unreachable.',
         addressResults,
       },
+    };
+  }
+
+  private toConnectionProfile(profile: StoredConnectionProfile): ConnectionProfile {
+    return {
+      ...profile,
+      isConnected: this.connectedConnectionIds.has(profile.id),
     };
   }
 }

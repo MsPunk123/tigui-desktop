@@ -10,19 +10,23 @@ const bridgeMock = {
   createConnection: vi.fn(),
   updateConnection: vi.fn(),
   deleteConnection: vi.fn(),
-  activateConnection: vi.fn(),
-  getActiveConnection: vi.fn().mockResolvedValue(null),
+  connectConnection: vi.fn(),
+  getConnectedConnectionIds: vi.fn().mockResolvedValue([]),
   testConnection: vi.fn(),
 };
 
 describe('App', () => {
-  it('renders connection manager shell and empty state', async () => {
+  it('renders platform shell with sidebar and blank default workspace', async () => {
     window.tigui = bridgeMock;
 
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'Connection Manager' })).toBeInTheDocument();
-    expect(await screen.findByTestId('app-version')).toHaveTextContent('1.0.0');
-    expect(screen.getByRole('heading', { name: 'No connections yet' })).toBeInTheDocument();
+    expect(await screen.findByText('TigUI Desktop')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Connections (0)' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Select a connection from the left panel, or click Connect to start using one.',
+      ),
+    ).toBeInTheDocument();
   });
 });

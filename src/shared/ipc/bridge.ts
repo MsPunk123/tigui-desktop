@@ -18,10 +18,10 @@ export type ConnectionsBridge = {
     input: ConnectionProfileInput,
   ) => Promise<ConnectionOperationResult>;
   deleteConnection: (id: string) => Promise<{ ok: true } | { ok: false; message: string }>;
-  activateConnection: (
+  connectConnection: (
     id: string,
-  ) => Promise<{ ok: true; activeConnectionId: string } | { ok: false; message: string }>;
-  getActiveConnection: () => Promise<ConnectionProfile | null>;
+  ) => Promise<{ ok: true; connectedConnectionIds: string[] } | { ok: false; message: string }>;
+  getConnectedConnectionIds: () => Promise<string[]>;
   testConnection: (
     id: string,
   ) => Promise<{ ok: true; result: ConnectionTestResult } | { ok: false; message: string }>;

@@ -18,5 +18,9 @@ Describe what changed and why.
 - [ ] No hardcoded endpoints/ports/timeouts/limits/channel strings
 - [ ] IPC changes are added to shared typed contracts before preload exposure
 - [ ] Shared controls are imported from `@/renderer/shared/components/ui` (no local duplicate Button/Input primitives)
+- [ ] Top-level renderer pages use `AppShell` + typed layout config (no ad-hoc shell per screen)
+- [ ] Top-level modules are declared in typed module registry and navigated via routes
 - [ ] New UI uses semantic design tokens; raw color literals stay in `src/index.css` token definitions
+- [ ] Existing shared controls are configured via props (`variant`/`size`/state) before introducing new primitives
+- [ ] New icons use `lucide-react` consistently across renderer features
 - [ ] Component variants use standardized `variant` and `size` APIs where applicable

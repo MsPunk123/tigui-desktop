@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { ConnectionProfile, ConnectionValidationError } from '@/shared/connections';
 
@@ -16,8 +16,7 @@ export type EditorState =
 
 type UseConnectionsWorkspaceResult = {
   profiles: ConnectionProfile[];
-  activeConnectionId: string | null;
-  activeProfile: ConnectionProfile | null;
+  connectedConnectionIds: string[];
   editorState: EditorState;
   validationErrors: ConnectionValidationError[];
   notice: string | null;
@@ -27,31 +26,27 @@ type UseConnectionsWorkspaceResult = {
   openEdit: (profile: ConnectionProfile) => void;
   closeEditor: () => void;
   submitEditor: (values: ConnectionFormValues) => Promise<void>;
-  activateConnection: (profile: ConnectionProfile) => Promise<void>;
+  connectConnection: (profile: ConnectionProfile) => Promise<void>;
   deleteConnection: (profile: ConnectionProfile) => Promise<void>;
   testConnection: (profile: ConnectionProfile) => Promise<void>;
 };
 
 export const useConnectionsWorkspace = (): UseConnectionsWorkspaceResult => {
   const [profiles, setProfiles] = useState<ConnectionProfile[]>([]);
-  const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+  const [connectedConnectionIds, setConnectedConnectionIds] = useState<string[]>([]);
   const [editorState, setEditorState] = useState<EditorState>({ mode: 'closed' });
   const [validationErrors, setValidationErrors] = useState<ConnectionValidationError[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const activeProfile = useMemo(() => {
-    return profiles.find((profile) => profile.id === activeConnectionId) ?? null;
-  }, [activeConnectionId, profiles]);
-
   const reloadProfiles = async () => {
-    const [nextProfiles, nextActive] = await Promise.all([
+    const [nextProfiles, nextConnectedIds] = await Promise.all([
       window.tigui.listConnections(),
-      window.tigui.getActiveConnection(),
+      window.tigui.getConnectedConnectionIds(),
     ]);
     setProfiles(nextProfiles);
-    setActiveConnectionId(nextActive?.id ?? null);
+    setConnectedConnectionIds(nextConnectedIds);
   };
 
   useEffect(() => {
@@ -121,15 +116,16 @@ export const useConnectionsWorkspace = (): UseConnectionsWorkspaceResult => {
     });
   };
 
-  const activateConnection = async (profile: ConnectionProfile) => {
-    const result = await window.tigui.activateConnection(profile.id);
+  const connectConnection = async (profile: ConnectionProfile) => {
+    const result = await window.tigui.connectConnection(profile.id);
     if (!result.ok) {
       setNotice(result.message);
       return;
     }
 
+    setConnectedConnectionIds(result.connectedConnectionIds);
     await reloadProfiles();
-    setNotice(`"${profile.name}" is now active.`);
+    setNotice(`"${profile.name}" is now connected.`);
   };
 
   const deleteConnection = async (profile: ConnectionProfile) => {
@@ -164,8 +160,7 @@ export const useConnectionsWorkspace = (): UseConnectionsWorkspaceResult => {
 
   return {
     profiles,
-    activeConnectionId,
-    activeProfile,
+    connectedConnectionIds,
     editorState,
     validationErrors,
     notice,
@@ -175,7 +170,7 @@ export const useConnectionsWorkspace = (): UseConnectionsWorkspaceResult => {
     openEdit,
     closeEditor,
     submitEditor,
-    activateConnection,
+    connectConnection,
     deleteConnection,
     testConnection,
   };

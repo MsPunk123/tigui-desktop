@@ -8,8 +8,8 @@ export const CONNECTION_CHANNELS = {
   createConnection: 'connections:create',
   updateConnection: 'connections:update',
   deleteConnection: 'connections:delete',
-  activateConnection: 'connections:activate',
-  getActiveConnection: 'connections:get-active',
+  connectConnection: 'connections:connect',
+  getConnectedConnectionIds: 'connections:get-connected-ids',
   testConnection: 'connections:test',
 } as const;
 
