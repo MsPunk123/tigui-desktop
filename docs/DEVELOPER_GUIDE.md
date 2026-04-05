@@ -102,6 +102,7 @@ Configuration rules:
 - All configurable values must be declared in `.env.example`.
 - Renderer-exposed environment variables must use `VITE_` prefix.
 - Main/preload environment variables must not leak into renderer by default.
+- Keep `@` alias resolution consistent across `vite.renderer.config.mts`, `vite.main.config.mts`, and `vite.preload.config.mts`.
 
 Constants placement:
 
