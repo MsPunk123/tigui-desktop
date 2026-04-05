@@ -59,6 +59,36 @@
               {
                 "group": ["../main/*", "../../main/*", "../preload/*", "../../preload/*"],
                 "message": "Renderer cannot import main/preload internals."
+              },
+              {
+                "group": ["@radix-ui/react-*"],
+                "message": "Import Radix primitives only from shared UI components. Use '@/renderer/shared/components/ui' elsewhere."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/renderer/shared/components/ui/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "electron",
+                "message": "Renderer must use preload bridge methods exposed on window.tigui."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["node:*"],
+                "message": "Node built-ins are not allowed in renderer. Use bridge/service abstractions."
+              },
+              {
+                "group": ["../main/*", "../../main/*", "../preload/*", "../../preload/*"],
+                "message": "Renderer cannot import main/preload internals."
               }
             ]
           }
