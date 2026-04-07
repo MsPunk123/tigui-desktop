@@ -31,8 +31,10 @@ export const WorkbenchTabs = ({
           <div
             key={tab.id}
             className={cn(
-              'group flex min-w-0 max-w-64 items-center gap-1 border-r border-border/70 px-2',
-              isActive ? 'bg-background' : 'bg-muted/35',
+              'group relative flex min-w-0 max-w-64 items-center gap-1 border-r border-border/70 px-2 transition-colors',
+              isActive
+                ? 'bg-background shadow-[inset_0_-2px_0_0_hsl(var(--primary))]'
+                : 'bg-muted/25 hover:bg-muted/45',
             )}
           >
             <Button
@@ -44,20 +46,27 @@ export const WorkbenchTabs = ({
               className={cn(
                 'h-auto min-w-0 flex-1 justify-start gap-2 rounded-none border-0 px-0 py-3 text-left text-sm shadow-none focus-visible:ring-2',
                 isActive
-                  ? 'bg-transparent text-foreground hover:bg-transparent'
-                  : 'bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground',
+                  ? 'bg-transparent font-semibold text-foreground hover:bg-transparent'
+                  : 'bg-transparent font-medium text-muted-foreground/90 hover:bg-transparent hover:text-foreground',
               )}
               onClick={() => onSelectTab(tab.id)}
             >
               <TabIcon
                 className={cn(
                   'size-3.5 shrink-0',
-                  isActive ? 'text-foreground/80' : 'text-muted-foreground',
+                  isActive ? 'text-primary' : 'text-muted-foreground',
                 )}
               />
               <span className="truncate font-medium">{tab.title}</span>
               {tab.subtitle ? (
-                <span className="truncate text-xs text-muted-foreground">{tab.subtitle}</span>
+                <span
+                  className={cn(
+                    'truncate text-xs',
+                    isActive ? 'text-foreground/65' : 'text-muted-foreground/85',
+                  )}
+                >
+                  {tab.subtitle}
+                </span>
               ) : null}
             </Button>
 

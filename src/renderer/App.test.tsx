@@ -164,6 +164,9 @@ describe('App', () => {
         'Update connection details without leaving the active workbench tab.',
       ),
     ).toBeInTheDocument();
+    const editSheetBody = dialog.querySelector('[data-slot="connections-sheet-body"]');
+    expect(editSheetBody).not.toBeNull();
+    expect(editSheetBody).toHaveClass('flex-1', 'min-h-0', 'overflow-y-auto');
 
     await user.click(screen.getByRole('button', { name: /Secondary Cluster/i }));
 
@@ -195,6 +198,9 @@ describe('App', () => {
     expect(
       within(dialog).getByText('Create a new connection profile from the shared workbench.'),
     ).toBeInTheDocument();
+    const createSheetBody = dialog.querySelector('[data-slot="connections-sheet-body"]');
+    expect(createSheetBody).not.toBeNull();
+    expect(createSheetBody).toHaveClass('flex-1', 'min-h-0', 'overflow-y-auto');
     expect(screen.getByText('127.0.0.1:3001')).toBeInTheDocument();
   });
 

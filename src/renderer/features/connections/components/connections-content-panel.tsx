@@ -79,7 +79,7 @@ export const ConnectionsContentPanel = () => {
         }}
       >
         <SheetContent side="right" className="w-full sm:max-w-2xl">
-          <SheetHeader className="border-b px-6 py-5">
+          <SheetHeader className="shrink-0 border-b px-6 py-5">
             <SheetTitle>
               {overlayState.mode === 'edit' ? 'Edit Connection' : 'Create Connection'}
             </SheetTitle>
@@ -89,26 +89,28 @@ export const ConnectionsContentPanel = () => {
                 : 'Create a new connection profile from the shared workbench.'}
             </SheetDescription>
           </SheetHeader>
-          {overlayState.mode === 'edit' && !editingProfile ? (
-            <div className="px-6 pb-6 text-sm text-muted-foreground">
-              This connection is no longer available.
-            </div>
-          ) : (
-            <div className="px-6 py-6">
-              <ConnectionEditorPanel
-                mode={overlayState.mode === 'edit' ? 'edit' : 'create'}
-                initialValues={overlayInitialValues}
-                isSubmitting={isSubmitting}
-                onCancel={closeEditor}
-                onSubmit={(values) =>
-                  void submitEditor(
-                    overlayState.mode === 'closed' ? null : overlayState.originTabId,
-                    values,
-                  )
-                }
-              />
-            </div>
-          )}
+          <div data-slot="connections-sheet-body" className="flex-1 min-h-0 overflow-y-auto">
+            {overlayState.mode === 'edit' && !editingProfile ? (
+              <div className="px-6 py-6 text-sm text-muted-foreground">
+                This connection is no longer available.
+              </div>
+            ) : (
+              <div className="px-6 py-6">
+                <ConnectionEditorPanel
+                  mode={overlayState.mode === 'edit' ? 'edit' : 'create'}
+                  initialValues={overlayInitialValues}
+                  isSubmitting={isSubmitting}
+                  onCancel={closeEditor}
+                  onSubmit={(values) =>
+                    void submitEditor(
+                      overlayState.mode === 'closed' ? null : overlayState.originTabId,
+                      values,
+                    )
+                  }
+                />
+              </div>
+            )}
+          </div>
         </SheetContent>
       </Sheet>
     </>
