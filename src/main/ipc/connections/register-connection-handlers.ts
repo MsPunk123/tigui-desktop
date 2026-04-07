@@ -21,6 +21,9 @@ export const registerConnectionHandlers = (connectionStore: ConnectionStore): vo
   ipcMain.handle(CONNECTION_CHANNELS.connectConnection, (_event, id) =>
     connectionStore.connectConnection(id),
   );
+  ipcMain.handle(CONNECTION_CHANNELS.disconnectConnection, (_event, id) =>
+    connectionStore.disconnectConnection(id),
+  );
   ipcMain.handle(CONNECTION_CHANNELS.testConnection, (_event, id) =>
     connectionStore.testConnection(id),
   );

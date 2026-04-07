@@ -34,6 +34,7 @@ export type ConnectionsWorkspace = {
   closeEditor: () => void;
   submitEditor: (tabId: string | null, values: ConnectionFormValues) => Promise<void>;
   connectConnection: (tabId: string, profile: ConnectionProfile) => Promise<void>;
+  disconnectConnection: (tabId: string, profile: ConnectionProfile) => Promise<void>;
   deleteConnection: (tabId: string, profile: ConnectionProfile) => Promise<void>;
   testConnection: (tabId: string, profile: ConnectionProfile) => Promise<void>;
   getTabUiState: (tabId: string | null) => ConnectionTabUiState;
@@ -203,7 +204,31 @@ export const useConnectionsWorkspace = (): ConnectionsWorkspace => {
 
     await reloadProfiles();
     setTabUiState(tabId, {
-      notice: `"${profile.name}" is now connected.`,
+      notice: `"${profile.name}" is now connected to TigerBeetle.`,
+      isBusy: false,
+    });
+  };
+
+  const disconnectConnection = async (tabId: string, profile: ConnectionProfile) => {
+    ensureTabUiState(tabId);
+    setTabUiState(tabId, {
+      notice: null,
+      validationErrors: [],
+      isBusy: true,
+      lastAction: 'disconnect',
+    });
+    const result = await window.tigui.disconnectConnection(profile.id);
+    if (!result.ok) {
+      setTabUiState(tabId, {
+        notice: result.message,
+        isBusy: false,
+      });
+      return;
+    }
+
+    await reloadProfiles();
+    setTabUiState(tabId, {
+      notice: `"${profile.name}" was disconnected.`,
       isBusy: false,
     });
   };
@@ -273,6 +298,7 @@ export const useConnectionsWorkspace = (): ConnectionsWorkspace => {
     closeEditor,
     submitEditor,
     connectConnection,
+    disconnectConnection,
     deleteConnection,
     testConnection,
     getTabUiState,

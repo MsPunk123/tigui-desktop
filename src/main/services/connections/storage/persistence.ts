@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { type ConnectionStateFile, DEFAULT_STATE } from './connection-models';
+import { type ConnectionStateFile, DEFAULT_STATE } from '../connection-models';
 
 export class ConnectionPersistence {
   private readonly stateFilePath: string;

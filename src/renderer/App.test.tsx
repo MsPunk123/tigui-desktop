@@ -8,7 +8,7 @@ const buildConnection = (overrides: Record<string, unknown> = {}) => ({
   id: 'primary',
   name: 'Primary Cluster',
   clusterId: '0',
-  addresses: ['http://127.0.0.1:3001'],
+  addresses: ['127.0.0.1:3001'],
   environmentTag: 'local',
   isDefault: true,
   isConnected: false,
@@ -25,6 +25,7 @@ const bridgeMock = {
   updateConnection: vi.fn(),
   deleteConnection: vi.fn(),
   connectConnection: vi.fn(),
+  disconnectConnection: vi.fn(),
   getConnectedConnectionIds: vi.fn().mockResolvedValue([]),
   testConnection: vi.fn(),
 };
@@ -69,7 +70,7 @@ describe('App', () => {
     const workbenchTab = screen.getByRole('tab', { name: /Primary Cluster/i });
     expect(workbenchTab).toHaveAttribute('aria-selected', 'true');
     expect(workbenchTab.querySelector('svg')).not.toBeNull();
-    expect(screen.getByText('http://127.0.0.1:3001')).toBeInTheDocument();
+    expect(screen.getByText('127.0.0.1:3001')).toBeInTheDocument();
     expect(screen.getByText('default')).toBeInTheDocument();
 
     await user.click(rowButton);
@@ -97,7 +98,7 @@ describe('App', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Connect' }));
     expect(window.tigui.connectConnection).toHaveBeenCalledWith('primary');
-    expect(screen.getByText(/is now connected\./i)).toBeInTheDocument();
+    expect(screen.getByText(/is now connected to tigerbeetle\./i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Expand connection row' }));
     expect(screen.getByText('Module area placeholder (future).')).toBeInTheDocument();
@@ -144,7 +145,7 @@ describe('App', () => {
           id: 'secondary',
           name: 'Secondary Cluster',
           clusterId: '1',
-          addresses: ['http://127.0.0.1:3002'],
+          addresses: ['127.0.0.1:3002'],
           environmentTag: 'staging',
           isDefault: false,
         }),
@@ -171,7 +172,7 @@ describe('App', () => {
       'aria-selected',
       'true',
     );
-    expect(screen.getByText('http://127.0.0.1:3002')).toBeInTheDocument();
+    expect(screen.getByText('127.0.0.1:3002')).toBeInTheDocument();
   });
 
   it('opens create connection in an overlay without replacing active tab content', async () => {
@@ -186,7 +187,7 @@ describe('App', () => {
     render(<App />);
 
     await user.click(await screen.findByRole('button', { name: /Primary Cluster/i }));
-    expect(screen.getByText('http://127.0.0.1:3001')).toBeInTheDocument();
+    expect(screen.getByText('127.0.0.1:3001')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Add connection' }));
 
@@ -194,7 +195,7 @@ describe('App', () => {
     expect(
       within(dialog).getByText('Create a new connection profile from the shared workbench.'),
     ).toBeInTheDocument();
-    expect(screen.getByText('http://127.0.0.1:3001')).toBeInTheDocument();
+    expect(screen.getByText('127.0.0.1:3001')).toBeInTheDocument();
   });
 
   it('keeps notices isolated to the tab that triggered them', async () => {
@@ -208,7 +209,7 @@ describe('App', () => {
           id: 'secondary',
           name: 'Secondary Cluster',
           clusterId: '1',
-          addresses: ['http://127.0.0.1:3002'],
+          addresses: ['127.0.0.1:3002'],
           environmentTag: 'staging',
           isDefault: false,
         }),
@@ -224,13 +225,19 @@ describe('App', () => {
 
     await user.click(await screen.findByRole('button', { name: /Primary Cluster/i }));
     await user.click(screen.getAllByRole('button', { name: 'Connect' }).at(-1)!);
-    expect(screen.getByText(/"Primary Cluster" is now connected\./i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/"Primary Cluster" is now connected to TigerBeetle\./i),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Secondary Cluster/i }));
-    expect(screen.queryByText(/"Primary Cluster" is now connected\./i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/"Primary Cluster" is now connected to TigerBeetle\./i),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: /Primary Cluster/i }));
-    expect(screen.getByText(/"Primary Cluster" is now connected\./i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/"Primary Cluster" is now connected to TigerBeetle\./i),
+    ).toBeInTheDocument();
   });
 
   it('clears tab-local notices when a tab is closed and reopened', async () => {
@@ -250,13 +257,19 @@ describe('App', () => {
 
     await user.click(await screen.findByRole('button', { name: /Primary Cluster/i }));
     await user.click(screen.getAllByRole('button', { name: 'Connect' }).at(-1)!);
-    expect(screen.getByText(/"Primary Cluster" is now connected\./i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/"Primary Cluster" is now connected to TigerBeetle\./i),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Close Primary Cluster' }));
-    expect(screen.queryByText(/"Primary Cluster" is now connected\./i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/"Primary Cluster" is now connected to TigerBeetle\./i),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Primary Cluster/i }));
-    expect(screen.queryByText(/"Primary Cluster" is now connected\./i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/"Primary Cluster" is now connected to TigerBeetle\./i),
+    ).not.toBeInTheDocument();
   });
 
   it('keeps validation feedback scoped to the originating tab', async () => {
@@ -270,7 +283,7 @@ describe('App', () => {
           id: 'secondary',
           name: 'Secondary Cluster',
           clusterId: '1',
-          addresses: ['http://127.0.0.1:3002'],
+          addresses: ['127.0.0.1:3002'],
           environmentTag: 'staging',
           isDefault: false,
         }),

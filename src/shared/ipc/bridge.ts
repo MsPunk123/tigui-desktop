@@ -21,6 +21,9 @@ export type ConnectionsBridge = {
   connectConnection: (
     id: string,
   ) => Promise<{ ok: true; connectedConnectionIds: string[] } | { ok: false; message: string }>;
+  disconnectConnection: (
+    id: string,
+  ) => Promise<{ ok: true; connectedConnectionIds: string[] } | { ok: false; message: string }>;
   getConnectedConnectionIds: () => Promise<string[]>;
   testConnection: (
     id: string,

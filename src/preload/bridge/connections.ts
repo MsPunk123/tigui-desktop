@@ -9,6 +9,7 @@ export const createConnectionsBridge = (): ConnectionsBridge => ({
     ipcRenderer.invoke(CONNECTION_CHANNELS.updateConnection, id, input),
   deleteConnection: (id) => ipcRenderer.invoke(CONNECTION_CHANNELS.deleteConnection, id),
   connectConnection: (id) => ipcRenderer.invoke(CONNECTION_CHANNELS.connectConnection, id),
+  disconnectConnection: (id) => ipcRenderer.invoke(CONNECTION_CHANNELS.disconnectConnection, id),
   getConnectedConnectionIds: () =>
     ipcRenderer.invoke(CONNECTION_CHANNELS.getConnectedConnectionIds),
   testConnection: (id) => ipcRenderer.invoke(CONNECTION_CHANNELS.testConnection, id),

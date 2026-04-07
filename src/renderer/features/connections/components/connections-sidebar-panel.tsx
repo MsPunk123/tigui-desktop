@@ -31,6 +31,7 @@ export const ConnectionsSidebarPanel = () => {
   const {
     profiles,
     connectConnection,
+    disconnectConnection,
     expandedConnectionIds,
     toggleExpandedConnectionId,
     selectedConnectionId,
@@ -157,7 +158,18 @@ export const ConnectionsSidebarPanel = () => {
                                 Connect
                               </Button>
                             ) : (
-                              <span className="w-0" aria-hidden="true" />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="xs"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openConnectionTab(profile);
+                                  void disconnectConnection(`connection:${profile.id}`, profile);
+                                }}
+                              >
+                                Disconnect
+                              </Button>
                             )}
 
                             <CollapsibleTrigger asChild>

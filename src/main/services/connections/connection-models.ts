@@ -17,4 +17,4 @@ export const DEFAULT_STATE: ConnectionStateFile = {
   profiles: [],
 };
 
-export const CONNECTION_TIMEOUT_MS = 1_500;
+export const CONNECTION_VERIFY_TIMEOUT_MS = 3_000;

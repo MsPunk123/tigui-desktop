@@ -9,6 +9,7 @@ export const CONNECTION_CHANNELS = {
   updateConnection: 'connections:update',
   deleteConnection: 'connections:delete',
   connectConnection: 'connections:connect',
+  disconnectConnection: 'connections:disconnect',
   getConnectedConnectionIds: 'connections:get-connected-ids',
   testConnection: 'connections:test',
 } as const;

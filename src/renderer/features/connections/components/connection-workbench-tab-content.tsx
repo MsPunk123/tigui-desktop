@@ -1,4 +1,4 @@
-import { CheckCircle2, Pencil, Play, Server, Trash2 } from 'lucide-react';
+import { CheckCircle2, Pencil, Play, PlugZap, Server, Trash2 } from 'lucide-react';
 
 import { useConnectionsModuleContext } from '@/renderer/app/modules/connections/connections-module-provider';
 import { useWorkbench } from '@/renderer/app/workbench';
@@ -21,8 +21,14 @@ type ConnectionWorkbenchTabContentProps = {
 export const ConnectionWorkbenchTabContent = ({
   connectionId,
 }: ConnectionWorkbenchTabContentProps) => {
-  const { profiles, connectConnection, testConnection, openEdit, deleteConnection } =
-    useConnectionsModuleContext();
+  const {
+    profiles,
+    connectConnection,
+    disconnectConnection,
+    testConnection,
+    openEdit,
+    deleteConnection,
+  } = useConnectionsModuleContext();
   const { activeTabId } = useWorkbench();
   const profile = profiles.find((item) => item.id === connectionId) ?? null;
 
@@ -72,7 +78,21 @@ export const ConnectionWorkbenchTabContent = ({
               <CheckCircle2 />
               Connect
             </Button>
-          ) : null}
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (!activeTabId) {
+                  return;
+                }
+                void disconnectConnection(activeTabId, profile);
+              }}
+            >
+              <PlugZap />
+              Disconnect
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"

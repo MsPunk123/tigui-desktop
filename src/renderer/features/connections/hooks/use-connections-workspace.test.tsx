@@ -10,7 +10,7 @@ const buildConnection = (overrides: Record<string, unknown> = {}) => ({
   id: 'primary',
   name: 'Primary Cluster',
   clusterId: '0',
-  addresses: ['http://127.0.0.1:3001'],
+  addresses: ['127.0.0.1:3001'],
   environmentTag: 'local',
   isDefault: true,
   isConnected: false,
@@ -30,6 +30,10 @@ const buildBridge = (overrides: Partial<TiguiBridge> = {}): TiguiBridge => ({
     ok: true,
     connectedConnectionIds: ['primary'],
   }),
+  disconnectConnection: vi.fn().mockResolvedValue({
+    ok: true,
+    connectedConnectionIds: [],
+  }),
   getConnectedConnectionIds: vi.fn().mockResolvedValue([]),
   testConnection: vi.fn(),
   ...overrides,
@@ -48,7 +52,7 @@ describe('useConnectionsWorkspace', () => {
     });
 
     expect(result.current.getTabUiState('connection:primary').notice).toBe(
-      '"Primary Cluster" is now connected.',
+      '"Primary Cluster" is now connected to TigerBeetle.',
     );
     expect(result.current.getTabUiState('connection:secondary').notice).toBeNull();
   });

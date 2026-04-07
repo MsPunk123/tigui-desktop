@@ -12,6 +12,13 @@ if (started) {
   app.quit();
 }
 
+process.on('uncaughtException', (error) => {
+  console.error('[main] uncaughtException:', error);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[main] unhandledRejection:', reason);
+});
+
 const isDevelopment = Boolean(MAIN_WINDOW_VITE_DEV_SERVER_URL);
 const connectionStore = new ConnectionStore(app.getPath('userData'));
 
@@ -45,7 +52,14 @@ const createWindow = () => {
 registerSystemHandlers();
 registerConnectionHandlers(connectionStore);
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  console.log('[main] app ready, creating window.');
+  createWindow();
+});
+app.on('before-quit', () => {
+  console.log('[main] before-quit');
+  connectionStore.dispose();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

@@ -7,7 +7,7 @@ import { ConnectionForm, type ConnectionFormValues } from './connection-form';
 const initialValues: ConnectionFormValues = {
   name: '',
   clusterId: '',
-  replicaUrls: ['http://127.0.0.1:3001'],
+  replicaAddresses: ['127.0.0.1:3001'],
   environmentTag: '',
   setAsDefault: false,
   secrets: [],
@@ -39,14 +39,14 @@ describe('ConnectionForm', () => {
     expect(onSubmit).toHaveBeenCalledWith({
       name: 'Primary Cluster',
       clusterId: '0',
-      replicaUrls: ['http://127.0.0.1:3001'],
+      replicaAddresses: ['127.0.0.1:3001'],
       environmentTag: 'local',
       setAsDefault: true,
       secrets: [{ key: 'token', value: 'secret' }],
     });
   });
 
-  it('supports adding and removing replica URLs with validation feedback intact', async () => {
+  it('supports adding and removing replica addresses with validation feedback intact', async () => {
     const user = userEvent.setup();
 
     render(
@@ -58,19 +58,19 @@ describe('ConnectionForm', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Add URL' }));
+    await user.click(screen.getByRole('button', { name: 'Add Address' }));
 
-    const urlInputs = screen.getAllByPlaceholderText('http://127.0.0.1:3001');
-    await user.clear(urlInputs[1]);
-    await user.type(urlInputs[1], 'invalid-url');
+    const addressInputs = screen.getAllByPlaceholderText('127.0.0.1:3001');
+    await user.clear(addressInputs[1]);
+    await user.type(addressInputs[1], 'host::bad');
 
     expect(
-      screen.getByText('Use a valid http:// or https:// URL with explicit host and port.'),
+      screen.getByText((content) => content.includes('Use a valid replica address like')),
     ).toBeInTheDocument();
 
     const removeButtons = screen.getAllByRole('button', { name: 'Remove' });
     await user.click(removeButtons[0]);
 
-    expect(screen.getAllByPlaceholderText('http://127.0.0.1:3001')).toHaveLength(1);
+    expect(screen.getAllByPlaceholderText('127.0.0.1:3001')).toHaveLength(1);
   });
 });
