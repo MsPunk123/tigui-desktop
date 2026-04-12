@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -182,6 +182,139 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: 'Open accounts for Primary Cluster' }));
     expect(screen.getAllByRole('tab', { name: /Primary Cluster Accounts/i })).toHaveLength(1);
+  });
+
+  it('renders decoded account flags as raw value plus semantic badges in table and details', async () => {
+    const user = userEvent.setup();
+
+    window.tigui = {
+      ...bridgeMock,
+      listConnections: vi.fn().mockResolvedValue([buildConnection({ isConnected: true })]),
+      queryAccounts: vi.fn().mockResolvedValue({
+        ok: true,
+        page: {
+          items: [
+            {
+              id: '100',
+              debitsPending: '0',
+              debitsPosted: '0',
+              creditsPending: '0',
+              creditsPosted: '0',
+              userData128: '0',
+              userData64: '0',
+              userData32: 0,
+              ledger: 700,
+              code: 410,
+              flags: 10,
+              timestamp: '1000',
+            },
+          ],
+        },
+      }),
+    };
+
+    render(<App />);
+
+    await user.click(await screen.findByRole('button', { name: 'Expand connection row' }));
+    await user.click(screen.getByRole('button', { name: 'Open accounts for Primary Cluster' }));
+
+    expect(screen.getAllByText('Debits <= Credits').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('History').length).toBeGreaterThan(0);
+    expect(screen.getByText(/Raw value:/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/get_account_balances can return historical balances\./i),
+    ).toBeInTheDocument();
+  });
+
+  it('renders human-readable UTC timestamp and exposes raw/iso values in tooltip and details', async () => {
+    const user = userEvent.setup();
+
+    window.tigui = {
+      ...bridgeMock,
+      listConnections: vi.fn().mockResolvedValue([buildConnection({ isConnected: true })]),
+      queryAccounts: vi.fn().mockResolvedValue({
+        ok: true,
+        page: {
+          items: [
+            {
+              id: '200',
+              debitsPending: '0',
+              debitsPosted: '0',
+              creditsPending: '0',
+              creditsPosted: '0',
+              userData128: '0',
+              userData64: '0',
+              userData32: 0,
+              ledger: 700,
+              code: 410,
+              flags: 0,
+              timestamp: '1000',
+            },
+          ],
+        },
+      }),
+    };
+
+    render(<App />);
+
+    await user.click(await screen.findByRole('button', { name: 'Expand connection row' }));
+    await user.click(screen.getByRole('button', { name: 'Open accounts for Primary Cluster' }));
+
+    const humanUtc = '1970-01-01 00:00:00.000 UTC';
+    expect(screen.getAllByText(humanUtc).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Raw epoch ns:/i)).toBeInTheDocument();
+    expect(screen.getByText('1000')).toBeInTheDocument();
+
+    await user.hover(screen.getAllByText(humanUtc)[0]);
+    expect((await screen.findAllByText(/Raw ns:/i)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/ISO UTC:/i).length).toBeGreaterThan(0);
+  });
+
+  it('converts datetime-local timestamp filters to epoch nanoseconds in query payload', async () => {
+    const user = userEvent.setup();
+    const queryAccounts = vi.fn().mockResolvedValue({
+      ok: true,
+      page: { items: [] },
+    });
+
+    window.tigui = {
+      ...bridgeMock,
+      listConnections: vi.fn().mockResolvedValue([buildConnection({ isConnected: true })]),
+      queryAccounts,
+    };
+
+    render(<App />);
+
+    await user.click(await screen.findByRole('button', { name: 'Expand connection row' }));
+    await user.click(screen.getByRole('button', { name: 'Open accounts for Primary Cluster' }));
+
+    const timestampMinInput = document.querySelector(
+      'input[placeholder="Timestamp Min"]',
+    ) as HTMLInputElement | null;
+    const timestampMaxInput = document.querySelector(
+      'input[placeholder="Timestamp Max"]',
+    ) as HTMLInputElement | null;
+
+    expect(timestampMinInput).not.toBeNull();
+    expect(timestampMaxInput).not.toBeNull();
+
+    fireEvent.change(timestampMinInput!, { target: { value: '1970-01-01T00:00:01.000' } });
+    fireEvent.change(timestampMaxInput!, { target: { value: '1970-01-01T00:00:02.000' } });
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+
+    expect(queryAccounts).toHaveBeenLastCalledWith('primary', {
+      limit: 100,
+      query: {
+        ledger: undefined,
+        code: undefined,
+        userData128: undefined,
+        userData64: undefined,
+        userData32: undefined,
+        timestampMin: '1000000000',
+        timestampMax: '2000000000',
+        sort: 'desc',
+      },
+    });
   });
 
   it('keeps medium connection names readable while preserving right-side actions', async () => {

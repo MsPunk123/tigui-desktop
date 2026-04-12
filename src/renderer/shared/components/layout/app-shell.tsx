@@ -59,7 +59,7 @@ export const AppShell = ({
           <div
             className={cn(
               'min-w-0 p-2 sm:p-3 lg:p-4',
-              resolved.contentScrollable ? 'overflow-y-auto overflow-x-auto' : 'overflow-hidden',
+              resolved.contentScrollable ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden',
             )}
           >
             {content}
