@@ -1,4 +1,4 @@
-import { LayoutDashboard, ListTree, Rows3 } from 'lucide-react';
+import { LayoutDashboard, ListTree } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { WorkbenchPlaceholder } from '@/renderer/app/workbench/components/workbench-placeholder';
@@ -6,6 +6,7 @@ import type {
   WorkbenchTab,
   WorkbenchTabDefinition,
 } from '@/renderer/app/workbench/workbench-types';
+import { AccountsWorkbenchTabContent } from '@/renderer/features/connections/components/accounts-workbench-tab-content';
 import { ConnectionWorkbenchTabContent } from '@/renderer/features/connections/components/connection-workbench-tab-content';
 
 type WorkbenchDefinitionMap = {
@@ -21,13 +22,7 @@ const WORKBENCH_TAB_DEFINITIONS: WorkbenchDefinitionMap = {
   accounts: {
     moduleId: 'connections',
     route: '/connections',
-    render: () => (
-      <WorkbenchPlaceholder
-        title="Accounts tab is not implemented yet"
-        description="The shared workbench is ready for richer resource tabs as the product grows."
-        icon={<Rows3 className="size-4" />}
-      />
-    ),
+    render: ({ tab }) => <AccountsWorkbenchTabContent connectionId={tab.connectionId} />,
   },
   transfers: {
     moduleId: 'connections',

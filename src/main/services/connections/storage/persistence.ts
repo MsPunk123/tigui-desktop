@@ -18,6 +18,11 @@ export class ConnectionPersistence {
       const parsed = JSON.parse(content) as ConnectionStateFile;
       return {
         profiles: Array.isArray(parsed.profiles) ? parsed.profiles : [],
+        accountsViewPreferencesByConnectionId:
+          parsed.accountsViewPreferencesByConnectionId &&
+          typeof parsed.accountsViewPreferencesByConnectionId === 'object'
+            ? parsed.accountsViewPreferencesByConnectionId
+            : {},
       };
     } catch {
       return { ...DEFAULT_STATE };

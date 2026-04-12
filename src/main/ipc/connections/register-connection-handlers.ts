@@ -27,4 +27,16 @@ export const registerConnectionHandlers = (connectionStore: ConnectionStore): vo
   ipcMain.handle(CONNECTION_CHANNELS.testConnection, (_event, id) =>
     connectionStore.testConnection(id),
   );
+  ipcMain.handle(CONNECTION_CHANNELS.queryAccounts, (_event, id, request) =>
+    connectionStore.queryConnectedAccounts(id, request),
+  );
+  ipcMain.handle(CONNECTION_CHANNELS.queryAccountBalances, (_event, id, request) =>
+    connectionStore.queryConnectedAccountBalances(id, request),
+  );
+  ipcMain.handle(CONNECTION_CHANNELS.getAccountsViewPreferences, (_event, id) =>
+    connectionStore.getAccountsViewPreferences(id),
+  );
+  ipcMain.handle(CONNECTION_CHANNELS.updateAccountsViewPreferences, (_event, id, patch) =>
+    connectionStore.updateAccountsViewPreferences(id, patch),
+  );
 };

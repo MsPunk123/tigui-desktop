@@ -1,8 +1,13 @@
 import type {
+  AccountBalancesRequest,
+  AccountsPageRequest,
+  AccountsViewPreferences,
   ConnectionOperationResult,
   ConnectionProfile,
   ConnectionProfileInput,
   ConnectionTestResult,
+  QueryConnectedAccountBalancesResult,
+  QueryConnectedAccountsResult,
 } from '@/shared/connections';
 
 export type SystemBridge = {
@@ -28,6 +33,19 @@ export type ConnectionsBridge = {
   testConnection: (
     id: string,
   ) => Promise<{ ok: true; result: ConnectionTestResult } | { ok: false; message: string }>;
+  queryAccounts: (
+    id: string,
+    request: AccountsPageRequest,
+  ) => Promise<QueryConnectedAccountsResult>;
+  queryAccountBalances: (
+    id: string,
+    request: AccountBalancesRequest,
+  ) => Promise<QueryConnectedAccountBalancesResult>;
+  getAccountsViewPreferences: (id: string) => Promise<AccountsViewPreferences>;
+  updateAccountsViewPreferences: (
+    id: string,
+    patch: Partial<AccountsViewPreferences>,
+  ) => Promise<AccountsViewPreferences>;
 };
 
 export type TiguiBridge = SystemBridge & ConnectionsBridge;

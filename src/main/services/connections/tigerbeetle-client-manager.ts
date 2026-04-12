@@ -1,7 +1,10 @@
-import { VERIFY_FAILED, VERIFY_TIMEOUT } from './connection-errors';
+import type { AccountBalancesRequest, AccountsQueryRequest } from '@/shared/connections';
+
+import { CONNECTION_NOT_CONNECTED, VERIFY_FAILED, VERIFY_TIMEOUT } from './connection-errors';
 import { CONNECTION_VERIFY_TIMEOUT_MS } from './connection-models';
 import { resolveReplicaAddresses } from './replica-address-resolver';
 import { type ITigerBeetleWorker, TigerBeetleWorker } from './worker';
+import type { WorkerAccountBalance, WorkerQueryAccount } from './worker/protocol';
 
 type ConnectedEntry = {
   configKey: string;
@@ -58,6 +61,55 @@ export class TigerBeetleClientManager {
         /* ignore */
       });
     }
+  }
+
+  async queryConnectedAccounts(
+    connectionId: string,
+    request: {
+      limit: number;
+      cursorTimestampMax?: bigint;
+      query?: AccountsQueryRequest;
+    },
+  ): Promise<WorkerQueryAccount[]> {
+    if (!this.isConnected(connectionId)) {
+      throw new Error(CONNECTION_NOT_CONNECTED);
+    }
+
+    const query = request.query ?? {};
+    return this.worker.queryAccounts(connectionId, {
+      user_data_128: query.userData128 ?? '0',
+      user_data_64: query.userData64 ?? '0',
+      user_data_32: query.userData32 ?? 0,
+      ledger: query.ledger ?? 0,
+      code: query.code ?? 0,
+      timestamp_min: query.timestampMin ?? '0',
+      timestamp_max: request.cursorTimestampMax
+        ? request.cursorTimestampMax.toString()
+        : (query.timestampMax ?? '0'),
+      limit: request.limit,
+      flags: query.sort === 'asc' ? 0 : 1, // QueryFilterFlags.reversed when descending
+    });
+  }
+
+  async queryConnectedAccountBalances(
+    connectionId: string,
+    request: AccountBalancesRequest,
+  ): Promise<WorkerAccountBalance[]> {
+    if (!this.isConnected(connectionId)) {
+      throw new Error(CONNECTION_NOT_CONNECTED);
+    }
+
+    return this.worker.getAccountBalances(connectionId, {
+      account_id: request.accountId,
+      user_data_128: '0',
+      user_data_64: '0',
+      user_data_32: 0,
+      code: 0,
+      timestamp_min: '0',
+      timestamp_max: request.cursorTimestampMax ?? '0',
+      limit: request.limit ?? 20,
+      flags: request.sort === 'asc' ? 3 : 7, // debits|credits with optional reversed
+    });
   }
 
   disconnect(connectionId: string): string[] {

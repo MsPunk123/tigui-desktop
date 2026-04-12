@@ -2,7 +2,15 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import path from 'node:path';
 import readline from 'node:readline';
 
-import type { ITigerBeetleWorker, WorkerRequestBody, WorkerResponse } from './protocol';
+import type {
+  ITigerBeetleWorker,
+  WorkerAccountBalance,
+  WorkerAccountBalancesFilter,
+  WorkerQueryAccount,
+  WorkerQueryAccountsFilter,
+  WorkerRequestBody,
+  WorkerResponse,
+} from './protocol';
 
 type PendingRequest = {
   resolve: (response: WorkerResponse) => void;
@@ -90,6 +98,49 @@ export class TigerBeetleWorker implements ITigerBeetleWorker {
     if (!response.ok) {
       throw new Error(response.error);
     }
+  }
+
+  async queryAccounts(
+    clientId: string,
+    filter: WorkerQueryAccountsFilter,
+  ): Promise<WorkerQueryAccount[]> {
+    const response = await this.send({ type: 'queryAccounts', clientId, filter });
+    if (!response.ok) {
+      throw new Error(response.error);
+    }
+
+    return (response.result ?? []).map((account) => ({
+      id: BigInt(account.id),
+      debits_pending: BigInt(account.debits_pending),
+      debits_posted: BigInt(account.debits_posted),
+      credits_pending: BigInt(account.credits_pending),
+      credits_posted: BigInt(account.credits_posted),
+      user_data_128: BigInt(account.user_data_128),
+      user_data_64: BigInt(account.user_data_64),
+      user_data_32: account.user_data_32,
+      ledger: account.ledger,
+      code: account.code,
+      flags: account.flags,
+      timestamp: BigInt(account.timestamp),
+    }));
+  }
+
+  async getAccountBalances(
+    clientId: string,
+    filter: WorkerAccountBalancesFilter,
+  ): Promise<WorkerAccountBalance[]> {
+    const response = await this.send({ type: 'getAccountBalances', clientId, filter });
+    if (!response.ok) {
+      throw new Error(response.error);
+    }
+
+    return (response.result ?? []).map((balance) => ({
+      debits_pending: BigInt(balance.debits_pending),
+      debits_posted: BigInt(balance.debits_posted),
+      credits_pending: BigInt(balance.credits_pending),
+      credits_posted: BigInt(balance.credits_posted),
+      timestamp: BigInt(balance.timestamp),
+    }));
   }
 
   async destroyClient(clientId: string): Promise<void> {

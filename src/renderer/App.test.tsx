@@ -28,6 +28,41 @@ const bridgeMock = {
   disconnectConnection: vi.fn(),
   getConnectedConnectionIds: vi.fn().mockResolvedValue([]),
   testConnection: vi.fn(),
+  queryAccounts: vi.fn().mockResolvedValue({ ok: true, page: { items: [] } }),
+  queryAccountBalances: vi.fn().mockResolvedValue({ ok: true, balances: { items: [] } }),
+  getAccountsViewPreferences: vi.fn().mockResolvedValue({
+    showAllDetailsInRows: false,
+    showRawDetailsPanel: true,
+    tColumnsEnabled: true,
+    debitCreditColorMode: 'semantic_fixed',
+    accountsQueryState: {
+      ledger: '',
+      code: '',
+      userData128: '',
+      userData64: '',
+      userData32: '',
+      timestampMin: '',
+      timestampMax: '',
+      sort: 'desc',
+    },
+  }),
+  updateAccountsViewPreferences: vi.fn().mockImplementation(async (_id, patch) => ({
+    showAllDetailsInRows: patch.showAllDetailsInRows ?? false,
+    showRawDetailsPanel: patch.showRawDetailsPanel ?? true,
+    tColumnsEnabled: patch.tColumnsEnabled ?? true,
+    debitCreditColorMode: patch.debitCreditColorMode ?? 'semantic_fixed',
+    accountsQueryState: {
+      ledger: '',
+      code: '',
+      userData128: '',
+      userData64: '',
+      userData32: '',
+      timestampMin: '',
+      timestampMax: '',
+      sort: 'desc',
+      ...(patch.accountsQueryState ?? {}),
+    },
+  })),
 };
 
 describe('App', () => {
@@ -52,7 +87,10 @@ describe('App', () => {
 
     window.tigui = {
       ...bridgeMock,
-      listConnections: vi.fn().mockResolvedValue([buildConnection()]),
+      listConnections: vi
+        .fn()
+        .mockResolvedValueOnce([buildConnection()])
+        .mockResolvedValue([buildConnection({ isConnected: true })]),
       connectConnection: vi.fn().mockResolvedValue({
         ok: true,
         connectedConnectionIds: ['primary'],
@@ -86,7 +124,10 @@ describe('App', () => {
 
     window.tigui = {
       ...bridgeMock,
-      listConnections: vi.fn().mockResolvedValue([buildConnection()]),
+      listConnections: vi
+        .fn()
+        .mockResolvedValueOnce([buildConnection()])
+        .mockResolvedValue([buildConnection({ isConnected: true })]),
       connectConnection: vi.fn().mockResolvedValue({
         ok: true,
         connectedConnectionIds: ['primary'],
@@ -101,7 +142,46 @@ describe('App', () => {
     expect(screen.getByText(/is now connected to tigerbeetle\./i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Expand connection row' }));
-    expect(screen.getByText('Module area placeholder (future).')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Open accounts for Primary Cluster' }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens a reusable accounts tab from connected sidebar child navigation', async () => {
+    const user = userEvent.setup();
+
+    window.tigui = {
+      ...bridgeMock,
+      listConnections: vi.fn().mockResolvedValue([buildConnection({ isConnected: true })]),
+      queryAccounts: vi.fn().mockResolvedValue({
+        ok: true,
+        page: { items: [] },
+      }),
+    };
+
+    render(<App />);
+
+    await user.click(await screen.findByRole('button', { name: 'Expand connection row' }));
+    await user.click(screen.getByRole('button', { name: 'Open accounts for Primary Cluster' }));
+
+    expect(screen.getByRole('tab', { name: /Primary Cluster Accounts/i })).toBeInTheDocument();
+    expect(screen.getByText(/No accounts found for this connection\./i)).toBeInTheDocument();
+    expect(window.tigui.queryAccounts).toHaveBeenCalledWith('primary', {
+      limit: 100,
+      query: {
+        ledger: undefined,
+        code: undefined,
+        userData128: undefined,
+        userData64: undefined,
+        userData32: undefined,
+        timestampMin: undefined,
+        timestampMax: undefined,
+        sort: 'desc',
+      },
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Open accounts for Primary Cluster' }));
+    expect(screen.getAllByRole('tab', { name: /Primary Cluster Accounts/i })).toHaveLength(1);
   });
 
   it('keeps medium connection names readable while preserving right-side actions', async () => {

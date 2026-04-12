@@ -6,6 +6,8 @@ import type { ITigerBeetleWorker } from './worker';
 const createMockWorker = (): ITigerBeetleWorker => ({
   createClient: vi.fn().mockResolvedValue(undefined),
   verifyClient: vi.fn().mockResolvedValue(undefined),
+  queryAccounts: vi.fn().mockResolvedValue([]),
+  getAccountBalances: vi.fn().mockResolvedValue([]),
   destroyClient: vi.fn().mockResolvedValue(undefined),
   destroyAll: vi.fn().mockResolvedValue(undefined),
   dispose: vi.fn(),
@@ -49,5 +51,27 @@ describe('TigerBeetleClientManager', () => {
     expect(mockWorker.destroyClient).toHaveBeenCalled();
     expect(connectedIds).toEqual([]);
     expect(manager.isConnected('primary')).toBe(false);
+  });
+
+  it('queries accounts with reversed ordering filter', async () => {
+    const manager = new TigerBeetleClientManager(mockWorker);
+
+    await manager.connect('primary', '0', ['localhost:3000']);
+    await manager.queryConnectedAccounts('primary', {
+      limit: 100,
+      cursorTimestampMax: 123n,
+    });
+
+    expect(mockWorker.queryAccounts).toHaveBeenCalledWith('primary', {
+      user_data_128: '0',
+      user_data_64: '0',
+      user_data_32: 0,
+      ledger: 0,
+      code: 0,
+      timestamp_min: '0',
+      timestamp_max: '123',
+      limit: 100,
+      flags: 1,
+    });
   });
 });

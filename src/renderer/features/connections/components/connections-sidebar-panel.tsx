@@ -1,11 +1,9 @@
-import { ChevronDown, ChevronRight, Plus, Server, Waypoints } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Rows3, Server, Waypoints } from 'lucide-react';
 
 import { useConnectionsModuleContext } from '@/renderer/app/modules/connections/connections-module-provider';
 import { useWorkbench } from '@/renderer/app/workbench';
 import {
   Button,
-  Card,
-  CardContent,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -24,6 +22,9 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from '@/renderer/shared/components/ui';
 import { cn } from '@/renderer/shared/lib/cn';
 
@@ -37,8 +38,9 @@ export const ConnectionsSidebarPanel = () => {
     selectedConnectionId,
     openCreate,
     openConnectionTab,
+    openAccountsTab,
   } = useConnectionsModuleContext();
-  const { activeTabId } = useWorkbench();
+  const { activeTab, activeTabId } = useWorkbench();
 
   return (
     <Sidebar>
@@ -83,6 +85,8 @@ export const ConnectionsSidebarPanel = () => {
                   const isSelected = selectedConnectionId === profile.id;
                   const isExpanded = Boolean(expandedConnectionIds[profile.id]);
                   const isConnected = profile.isConnected;
+                  const isAccountsTabActive =
+                    activeTab?.type === 'accounts' && activeTab.connectionId === profile.id;
 
                   return (
                     <Collapsible
@@ -172,40 +176,58 @@ export const ConnectionsSidebarPanel = () => {
                               </Button>
                             )}
 
-                            <CollapsibleTrigger asChild>
-                              <SidebarMenuAction
-                                type="button"
-                                className={cn(
-                                  'static size-6 translate-y-0 hover:bg-transparent',
-                                  isSelected &&
-                                    'text-sidebar-accent-foreground/70 hover:text-sidebar-accent-foreground',
-                                )}
-                                onClick={(event) => event.stopPropagation()}
-                                aria-label={
-                                  isExpanded ? 'Collapse connection row' : 'Expand connection row'
-                                }
-                                title={
-                                  isExpanded ? 'Collapse connection row' : 'Expand connection row'
-                                }
-                              >
-                                {isExpanded ? (
-                                  <ChevronDown className="size-4" />
-                                ) : (
-                                  <ChevronRight className="size-4" />
-                                )}
-                              </SidebarMenuAction>
-                            </CollapsibleTrigger>
+                            {isConnected ? (
+                              <CollapsibleTrigger asChild>
+                                <SidebarMenuAction
+                                  type="button"
+                                  className={cn(
+                                    'static size-6 translate-y-0 hover:bg-transparent',
+                                    isSelected &&
+                                      'text-sidebar-accent-foreground/70 hover:text-sidebar-accent-foreground',
+                                  )}
+                                  onClick={(event) => event.stopPropagation()}
+                                  aria-label={
+                                    isExpanded ? 'Collapse connection row' : 'Expand connection row'
+                                  }
+                                  title={
+                                    isExpanded ? 'Collapse connection row' : 'Expand connection row'
+                                  }
+                                >
+                                  {isExpanded ? (
+                                    <ChevronDown className="size-4" />
+                                  ) : (
+                                    <ChevronRight className="size-4" />
+                                  )}
+                                </SidebarMenuAction>
+                              </CollapsibleTrigger>
+                            ) : null}
                           </div>
                         </div>
 
                         <CollapsibleContent>
-                          <div className="ml-10 mt-1">
-                            <Card className="border border-dashed border-sidebar-border bg-sidebar-accent/35 py-0 text-sidebar-foreground shadow-none ring-0">
-                              <CardContent className="px-3 py-2 text-xs text-muted-foreground">
-                                Module area placeholder (future).
-                              </CardContent>
-                            </Card>
-                          </div>
+                          {isConnected ? (
+                            <div className="ml-10 mt-1">
+                              <SidebarMenuSub className="mx-0 translate-x-0 border-0 p-0">
+                                <SidebarMenuSubItem className="w-full">
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isAccountsTabActive}
+                                    className="h-8 w-full cursor-pointer rounded-md bg-sidebar-accent/35 px-2 py-1.5 text-xs hover:bg-sidebar-accent"
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() => openAccountsTab(profile)}
+                                      aria-label={`Open accounts for ${profile.name}`}
+                                      className="flex w-full items-center gap-2 text-left"
+                                    >
+                                      <Rows3 className="size-3.5" />
+                                      <span>Accounts</span>
+                                    </button>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              </SidebarMenuSub>
+                            </div>
+                          ) : null}
                         </CollapsibleContent>
                       </SidebarMenuItem>
                     </Collapsible>

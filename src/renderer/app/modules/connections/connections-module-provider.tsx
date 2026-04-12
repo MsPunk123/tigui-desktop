@@ -1,4 +1,4 @@
-import { Server } from 'lucide-react';
+import { Rows3, Server } from 'lucide-react';
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react';
 
 import type { AppModuleProviderProps } from '@/renderer/app/modules/module-types';
@@ -14,6 +14,7 @@ export type ConnectionsModuleContextValue = ConnectionsWorkspace & {
   expandedConnectionIds: Record<string, boolean>;
   toggleExpandedConnectionId: (id: string) => void;
   openConnectionTab: (profile: ConnectionProfile) => void;
+  openAccountsTab: (profile: ConnectionProfile) => void;
 };
 
 const ConnectionsModuleContext = createContext<ConnectionsModuleContextValue | null>(null);
@@ -37,13 +38,16 @@ const ConnectionsModuleProviderContent = ({ children }: ConnectionsModuleProvide
   const { activeTab, activeTabId, tabs, closeTab, openTab, updateTab } = useWorkbench();
   const previousTabIdsRef = useRef<string[]>([]);
 
-  const selectedConnectionId = activeTab?.type === 'connection' ? activeTab.connectionId : null;
+  const selectedConnectionId =
+    activeTab?.type === 'connection' || activeTab?.type === 'accounts'
+      ? activeTab.connectionId
+      : null;
 
   useEffect(() => {
     const profilesById = new Map(workspace.profiles.map((profile) => [profile.id, profile]));
 
     tabs.forEach((tab) => {
-      if (tab.type !== 'connection') {
+      if (tab.type !== 'connection' && tab.type !== 'accounts') {
         return;
       }
 
@@ -53,9 +57,10 @@ const ConnectionsModuleProviderContent = ({ children }: ConnectionsModuleProvide
         return;
       }
 
-      if (tab.title !== profile.name || tab.subtitle !== profile.environmentTag) {
+      const nextTitle = tab.type === 'accounts' ? `${profile.name} Accounts` : profile.name;
+      if (tab.title !== nextTitle || tab.subtitle !== profile.environmentTag) {
         updateTab(tab.id, {
-          title: profile.name,
+          title: nextTitle,
           subtitle: profile.environmentTag,
         });
       }
@@ -101,12 +106,28 @@ const ConnectionsModuleProviderContent = ({ children }: ConnectionsModuleProvide
     });
   };
 
+  const openAccountsTab = (profile: ConnectionProfile) => {
+    const tabId = `accounts:${profile.id}`;
+    workspace.ensureTabUiState(tabId);
+    openTab({
+      id: tabId,
+      type: 'accounts',
+      moduleId: 'connections',
+      icon: Rows3,
+      connectionId: profile.id,
+      title: `${profile.name} Accounts`,
+      subtitle: profile.environmentTag,
+      closable: true,
+    });
+  };
+
   const contextValue: ConnectionsModuleContextValue = {
     ...workspace,
     selectedConnectionId,
     expandedConnectionIds,
     toggleExpandedConnectionId,
     openConnectionTab,
+    openAccountsTab,
   };
 
   if (workspace.isLoading) {

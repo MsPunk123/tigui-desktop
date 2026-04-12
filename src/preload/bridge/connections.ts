@@ -13,4 +13,12 @@ export const createConnectionsBridge = (): ConnectionsBridge => ({
   getConnectedConnectionIds: () =>
     ipcRenderer.invoke(CONNECTION_CHANNELS.getConnectedConnectionIds),
   testConnection: (id) => ipcRenderer.invoke(CONNECTION_CHANNELS.testConnection, id),
+  queryAccounts: (id, request) =>
+    ipcRenderer.invoke(CONNECTION_CHANNELS.queryAccounts, id, request),
+  queryAccountBalances: (id, request) =>
+    ipcRenderer.invoke(CONNECTION_CHANNELS.queryAccountBalances, id, request),
+  getAccountsViewPreferences: (id) =>
+    ipcRenderer.invoke(CONNECTION_CHANNELS.getAccountsViewPreferences, id),
+  updateAccountsViewPreferences: (id, patch) =>
+    ipcRenderer.invoke(CONNECTION_CHANNELS.updateAccountsViewPreferences, id, patch),
 });

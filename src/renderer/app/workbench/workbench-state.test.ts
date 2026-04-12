@@ -14,6 +14,17 @@ const connectionTab = (id: string, title: string) => ({
   closable: true,
 });
 
+const accountsTab = (connectionId: string, title: string) => ({
+  id: `accounts:${connectionId}`,
+  type: 'accounts' as const,
+  moduleId: 'connections' as const,
+  icon: Server,
+  connectionId,
+  title,
+  subtitle: 'local',
+  closable: true,
+});
+
 describe('workbenchReducer', () => {
   it('opens tabs, updates the active tab, and preserves one tab per id', () => {
     const opened = workbenchReducer(INITIAL_WORKBENCH_STATE, {
@@ -75,5 +86,21 @@ describe('workbenchReducer', () => {
     expect(isolated.tabs).toHaveLength(1);
     expect(isolated.tabs[0].id).toBe('connection:second');
     expect(isolated.activeTabId).toBe('connection:second');
+  });
+
+  it('reuses one accounts tab per connection id', () => {
+    const opened = workbenchReducer(INITIAL_WORKBENCH_STATE, {
+      type: 'open_tab',
+      input: accountsTab('primary', 'Primary Accounts'),
+    });
+
+    const reopened = workbenchReducer(opened, {
+      type: 'open_tab',
+      input: { ...accountsTab('primary', 'Primary Accounts'), subtitle: 'staging' },
+    });
+
+    expect(reopened.tabs).toHaveLength(1);
+    expect(reopened.activeTabId).toBe('accounts:primary');
+    expect(reopened.tabs[0].subtitle).toBe('staging');
   });
 });
