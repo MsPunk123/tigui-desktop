@@ -1,4 +1,14 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
 
-pnpm lint-staged
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm exec lint-staged
+elif command -v npx >/dev/null 2>&1; then
+  npx --no-install lint-staged
+elif [ -x "./node_modules/.bin/lint-staged" ]; then
+  ./node_modules/.bin/lint-staged
+elif [ -x "./node_modules/.bin/lint-staged.cmd" ]; then
+  ./node_modules/.bin/lint-staged.cmd
+else
+  echo "lint-staged not found. Run 'pnpm install' first."
+  exit 1
+fi

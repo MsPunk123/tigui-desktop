@@ -1,16 +1,26 @@
 import path from 'node:path';
 
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import started from 'electron-squirrel-startup';
 
-import { IPC_CHANNELS } from './shared/ipc';
+import { registerConnectionHandlers } from './main/ipc/connections/register-connection-handlers';
+import { registerSystemHandlers } from './main/ipc/system/register-system-handlers';
+import { ConnectionStore } from './main/services/connections/connection-store';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
 
+process.on('uncaughtException', (error) => {
+  console.error('[main] uncaughtException:', error);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[main] unhandledRejection:', reason);
+});
+
 const isDevelopment = Boolean(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+const connectionStore = new ConnectionStore(app.getPath('userData'));
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
@@ -39,10 +49,17 @@ const createWindow = () => {
   }
 };
 
-ipcMain.handle(IPC_CHANNELS.getAppVersion, () => app.getVersion());
-ipcMain.handle(IPC_CHANNELS.ping, (_event, message: string) => `pong:${message}`);
+registerSystemHandlers();
+registerConnectionHandlers(connectionStore);
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  console.log('[main] app ready, creating window.');
+  createWindow();
+});
+app.on('before-quit', () => {
+  console.log('[main] before-quit');
+  connectionStore.dispose();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

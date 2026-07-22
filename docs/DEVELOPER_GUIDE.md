@@ -16,8 +16,10 @@ Target structure:
 src/
   main/
     ipc/
-      handlers/
+      connections/
+      system/
     services/
+      <feature>/
     windows/
   preload/
     bridge/
@@ -38,8 +40,12 @@ src/
       constants/
   shared/
     ipc/
-    constants/
-    types/
+      channels.ts
+      bridge.ts
+    <feature>/
+      types.ts
+      results.ts
+      index.ts
 ```
 
 Naming conventions:
@@ -47,6 +53,7 @@ Naming conventions:
 - Files: kebab-case for utilities and config files, PascalCase for React components.
 - Features: domain names (`accounts`, `transfers`, `session`), not UI names (`table1`, `screenA`).
 - Entry points: each feature exposes public API via `index.ts`.
+- Keep `shared` contracts split by domain (`shared/connections`, `shared/transfers`, etc.); avoid adding unrelated types to a single file.
 
 ## 2) Process Boundaries and Dependency Rules
 
@@ -95,6 +102,7 @@ Configuration rules:
 - All configurable values must be declared in `.env.example`.
 - Renderer-exposed environment variables must use `VITE_` prefix.
 - Main/preload environment variables must not leak into renderer by default.
+- Keep `@` alias resolution consistent across `vite.renderer.config.mts`, `vite.main.config.mts`, and `vite.preload.config.mts`.
 
 Constants placement:
 
@@ -148,3 +156,48 @@ Non-blocking architecture checklist for each PR:
 - [ ] New config values are added to `.env.example`.
 - [ ] No hardcoded endpoints/ports/timeouts/limits/channel strings.
 - [ ] IPC additions update shared typed contracts before preload exposure.
+
+## 7) Scalability Guardrails (Prevent God Files Early)
+
+Module responsibility rules:
+
+- One module should have one primary responsibility.
+- Keep orchestration in one file and move validation/testing/persistence into focused modules.
+- Prefer `hooks + mappers + components` split in renderer feature folders once a file starts mixing concerns.
+
+File size guidance:
+
+- Soft cap: ~150-200 LOC per module.
+- If a file crosses the soft cap and has mixed responsibilities, split it before adding new feature logic.
+- Exceptions: shared UI primitives, token files, and generated files.
+
+Import hygiene:
+
+- Use feature-local imports first; only promote to `renderer/shared` or `shared/*` when used by 2+ features.
+- Keep compatibility wrappers small (single re-export), and avoid adding logic to wrapper files.
+
+## 8) UI Design System and Consistency Rules
+
+Primary stack:
+
+- Tailwind + semantic CSS variables in `src/index.css` are the single source of truth for visual tokens.
+- Shared primitives live in `src/renderer/shared/components/ui`.
+- Feature code should consume primitives through `@/renderer/shared/components/ui`.
+- All top-level renderer screens must compose through `AppShell` using a typed layout config contract.
+- Use `lucide-react` as the standard icon library for renderer controls and status icons.
+- `App.tsx` is the platform workbench owner (`routing + module registry + app layout composition`), not a feature page.
+- Features must plug into app layout regions (sidebar/topbar/content) and must not own the global shell.
+- Top-level module navigation must be URL-driven (`react-router-dom`) with module definitions registered in a typed module registry.
+
+Component API conventions:
+
+- Reusable controls expose `variant` and `size` props where practical.
+- Prefer passing stronger props (`variant`, `size`, `pressed`, `disabled`, state attrs) to existing shared components before adding new primitives.
+- Feature code should prefer component props over custom ad-hoc class overrides.
+- `cn` from `@/renderer/shared/lib/cn` is the only class merge helper.
+
+Style and accessibility conventions:
+
+- Raw color literals (`#hex`, `rgb`, `hsl`) are allowed only in token files.
+- Shared controls must include visible focus treatment and keyboard accessibility.
+- Interactive controls should keep stable labels and semantics for testing (`role`, accessible name, `aria-*` where needed).

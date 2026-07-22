@@ -35,6 +35,7 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+.pnpm-store/
 
 # TypeScript v1 declaration files
 typings/
@@ -95,3 +96,8 @@ out/
 
 # Test output
 coverage/
+
+infra/data/*
+
+tigerbeetle docs/*
+vite.main.config.mts.timestamp-*.mjs
