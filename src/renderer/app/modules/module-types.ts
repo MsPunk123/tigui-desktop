@@ -12,6 +12,6 @@ export type AppModuleDefinition = {
   icon: LucideIcon;
   Provider?: ComponentType<AppModuleProviderProps>;
   SidebarPanel: ComponentType;
-  TopbarPanel: ComponentType;
+  TopbarPanel?: ComponentType;
   ContentPanel: ComponentType;
 };

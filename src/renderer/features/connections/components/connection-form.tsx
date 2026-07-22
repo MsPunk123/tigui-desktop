@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import {
@@ -16,7 +17,7 @@ import {
 export type ConnectionFormValues = {
   name: string;
   clusterId: string;
-  replicaUrls: string[];
+  replicaAddresses: string[];
   environmentTag: string;
   setAsDefault: boolean;
   secrets: Array<{ key: string; value: string }>;
@@ -32,22 +33,37 @@ type ConnectionFormProps = {
 
 const emptySecret = () => ({ key: '', value: '' });
 
-const normalizeReplicaUrl = (value: string): string | null => {
+const normalizeReplicaAddress = (value: string): string | null => {
   const trimmed = value.trim();
   if (!trimmed) {
     return null;
   }
 
+  if (/^\d+$/.test(trimmed)) {
+    const port = Number(trimmed);
+    return Number.isInteger(port) && port >= 1 && port <= 65535 ? String(port) : null;
+  }
+
   try {
-    const parsed = new URL(trimmed);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return null;
-    }
-    if (!parsed.hostname || !parsed.port) {
+    const parsed = new URL(trimmed.includes('://') ? trimmed : `tb://${trimmed}`);
+    if (!parsed.hostname) {
       return null;
     }
 
-    return `${parsed.protocol}//${parsed.hostname}:${parsed.port}`;
+    const port = parsed.port ? Number(parsed.port) : null;
+    if (port !== null && (!Number.isInteger(port) || port < 1 || port > 65535)) {
+      return null;
+    }
+
+    if (parsed.port) {
+      return `${parsed.hostname.toLowerCase()}:${parsed.port}`;
+    }
+
+    if (trimmed.includes('://')) {
+      return `${parsed.hostname.toLowerCase()}:3001`;
+    }
+
+    return parsed.hostname.toLowerCase();
   } catch {
     return null;
   }
@@ -63,43 +79,43 @@ export const ConnectionForm = ({
   const [values, setValues] = useState<ConnectionFormValues>(initialValues);
   const secretCheckboxId = 'connection-set-default';
 
-  const replicaUrlErrors = useMemo(() => {
-    return values.replicaUrls.map((item) => {
+  const replicaAddressErrors = useMemo(() => {
+    return values.replicaAddresses.map((item) => {
       const trimmed = item.trim();
       if (!trimmed) {
-        return 'Replica URL is required.';
+        return 'Replica address is required.';
       }
 
-      if (!normalizeReplicaUrl(trimmed)) {
-        return 'Use a valid http:// or https:// URL with explicit host and port.';
+      if (!normalizeReplicaAddress(trimmed)) {
+        return 'Use a valid replica address like 127.0.0.1:3001 or 3001.';
       }
 
       return null;
     });
-  }, [values.replicaUrls]);
+  }, [values.replicaAddresses]);
 
-  const hasDuplicateReplicaUrls = useMemo(() => {
-    const normalized = values.replicaUrls
-      .map((item) => normalizeReplicaUrl(item))
+  const hasDuplicateReplicaAddresses = useMemo(() => {
+    const normalized = values.replicaAddresses
+      .map((item) => normalizeReplicaAddress(item))
       .filter((item): item is string => Boolean(item));
     return new Set(normalized).size !== normalized.length;
-  }, [values.replicaUrls]);
+  }, [values.replicaAddresses]);
 
   const canSubmit = useMemo(() => {
-    const hasReplicaErrors = replicaUrlErrors.some(Boolean);
+    const hasReplicaErrors = replicaAddressErrors.some(Boolean);
     return (
       values.name.trim().length >= 2 &&
       values.clusterId.trim().length > 0 &&
-      values.replicaUrls.length > 0 &&
+      values.replicaAddresses.length > 0 &&
       !hasReplicaErrors &&
-      !hasDuplicateReplicaUrls
+      !hasDuplicateReplicaAddresses
     );
   }, [
-    hasDuplicateReplicaUrls,
-    replicaUrlErrors,
+    hasDuplicateReplicaAddresses,
+    replicaAddressErrors,
     values.clusterId,
     values.name,
-    values.replicaUrls.length,
+    values.replicaAddresses.length,
   ]);
 
   return (
@@ -136,7 +152,7 @@ export const ConnectionForm = ({
 
           <Field>
             <div className="flex items-center justify-between gap-3">
-              <FieldLabel>Replica URLs</FieldLabel>
+              <FieldLabel>Replica Addresses</FieldLabel>
               <Button
                 type="button"
                 size="sm"
@@ -144,56 +160,59 @@ export const ConnectionForm = ({
                 onClick={() =>
                   setValues((prev) => ({
                     ...prev,
-                    replicaUrls: [...prev.replicaUrls, ''],
+                    replicaAddresses: [...prev.replicaAddresses, ''],
                   }))
                 }
               >
-                Add URL
+                Add Address
               </Button>
             </div>
 
             <FieldGroup className="gap-2">
-              {values.replicaUrls.map((replicaUrl, index) => (
+              {values.replicaAddresses.map((replicaAddress, index) => (
                 <Field key={index}>
                   <div className="grid gap-2 md:grid-cols-[1fr_auto]">
                     <Input
-                      aria-invalid={replicaUrlErrors[index] ? true : undefined}
-                      value={replicaUrl}
+                      aria-invalid={replicaAddressErrors[index] ? true : undefined}
+                      value={replicaAddress}
                       onChange={(event) => {
-                        const next = [...values.replicaUrls];
+                        const next = [...values.replicaAddresses];
                         next[index] = event.target.value;
-                        setValues((prev) => ({ ...prev, replicaUrls: next }));
+                        setValues((prev) => ({ ...prev, replicaAddresses: next }));
                       }}
-                      placeholder="http://127.0.0.1:3001"
+                      placeholder="127.0.0.1:3001"
                     />
-                    {values.replicaUrls.length > 1 ? (
+                    {values.replicaAddresses.length > 1 ? (
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="outline"
+                        size="icon"
+                        aria-label="Remove"
                         onClick={() =>
                           setValues((prev) => ({
                             ...prev,
-                            replicaUrls: prev.replicaUrls.filter((_, row) => row !== index),
+                            replicaAddresses: prev.replicaAddresses.filter(
+                              (_, row) => row !== index,
+                            ),
                           }))
                         }
                       >
-                        Remove
+                        <X />
                       </Button>
                     ) : null}
                   </div>
-                  <FieldError>{replicaUrlErrors[index]}</FieldError>
+                  <FieldError>{replicaAddressErrors[index]}</FieldError>
                 </Field>
               ))}
             </FieldGroup>
 
             <FieldError>
-              {hasDuplicateReplicaUrls
-                ? 'Duplicate replica URLs are not allowed after normalization.'
+              {hasDuplicateReplicaAddresses
+                ? 'Duplicate replica addresses are not allowed after normalization.'
                 : null}
             </FieldError>
             <FieldDescription>
-              Only `http://` or `https://` URLs are accepted, and each URL must include a host and
-              port.
+              Use TigerBeetle replica addresses like `127.0.0.1:3001` or `3001`.
             </FieldDescription>
           </Field>
 
@@ -255,7 +274,9 @@ export const ConnectionForm = ({
                       />
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="outline"
+                        size="icon"
+                        aria-label="Remove"
                         onClick={() => {
                           const next = values.secrets.filter(
                             (_, secretIndex) => secretIndex !== index,
@@ -263,7 +284,7 @@ export const ConnectionForm = ({
                           setValues((prev) => ({ ...prev, secrets: next }));
                         }}
                       >
-                        Remove
+                        <X />
                       </Button>
                     </div>
                   </Field>

@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { type ConnectionStateFile, DEFAULT_STATE } from './connection-models';
+import { type ConnectionStateFile, DEFAULT_STATE } from '../connection-models';
 
 export class ConnectionPersistence {
   private readonly stateFilePath: string;
@@ -18,6 +18,11 @@ export class ConnectionPersistence {
       const parsed = JSON.parse(content) as ConnectionStateFile;
       return {
         profiles: Array.isArray(parsed.profiles) ? parsed.profiles : [],
+        accountsViewPreferencesByConnectionId:
+          parsed.accountsViewPreferencesByConnectionId &&
+          typeof parsed.accountsViewPreferencesByConnectionId === 'object'
+            ? parsed.accountsViewPreferencesByConnectionId
+            : {},
       };
     } catch {
       return { ...DEFAULT_STATE };

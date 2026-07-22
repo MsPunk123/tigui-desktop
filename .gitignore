@@ -98,3 +98,6 @@ out/
 coverage/
 
 infra/data/*
+
+tigerbeetle docs/*
+vite.main.config.mts.timestamp-*.mjs

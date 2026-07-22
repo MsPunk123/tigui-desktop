@@ -9,8 +9,13 @@ export const CONNECTION_CHANNELS = {
   updateConnection: 'connections:update',
   deleteConnection: 'connections:delete',
   connectConnection: 'connections:connect',
+  disconnectConnection: 'connections:disconnect',
   getConnectedConnectionIds: 'connections:get-connected-ids',
   testConnection: 'connections:test',
+  queryAccounts: 'connections:query-accounts',
+  queryAccountBalances: 'connections:query-account-balances',
+  getAccountsViewPreferences: 'connections:get-accounts-view-preferences',
+  updateAccountsViewPreferences: 'connections:update-accounts-view-preferences',
 } as const;
 
 export const IPC_CHANNELS = {

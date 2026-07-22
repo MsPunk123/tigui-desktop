@@ -5,14 +5,14 @@ import type { ConnectionFormValues } from '../components/connection-form';
 export const EMPTY_CONNECTION_FORM: ConnectionFormValues = {
   name: '',
   clusterId: '',
-  replicaUrls: [''],
+  replicaAddresses: [''],
   environmentTag: '',
   setAsDefault: false,
   secrets: [],
 };
 
 export const toProfileInput = (values: ConnectionFormValues): ConnectionProfileInput => {
-  const addresses = values.replicaUrls.map((value) => value.trim()).filter(Boolean);
+  const addresses = values.replicaAddresses.map((value) => value.trim()).filter(Boolean);
   const secrets = Object.fromEntries(
     values.secrets
       .map((item) => [item.key.trim(), item.value])
@@ -32,7 +32,7 @@ export const toProfileInput = (values: ConnectionFormValues): ConnectionProfileI
 export const toConnectionFormValues = (profile: ConnectionProfile): ConnectionFormValues => ({
   name: profile.name,
   clusterId: profile.clusterId,
-  replicaUrls: profile.addresses.length > 0 ? [...profile.addresses] : [''],
+  replicaAddresses: profile.addresses.length > 0 ? [...profile.addresses] : [''],
   environmentTag: profile.environmentTag ?? '',
   setAsDefault: profile.isDefault,
   secrets: [],

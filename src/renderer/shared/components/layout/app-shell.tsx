@@ -52,14 +52,14 @@ export const AppShell = ({
         </aside>
 
         <section
-          className="grid h-full"
+          className="grid h-full min-w-0"
           style={{ gridTemplateRows: `${resolved.topbarHeightPx}px 1fr` }}
         >
-          <header className="border-b">{topbar}</header>
+          <header className="min-w-0 border-b">{topbar}</header>
           <div
             className={cn(
-              'p-4',
-              resolved.contentScrollable ? 'overflow-y-auto' : 'overflow-hidden',
+              'min-w-0 p-2 sm:p-3 lg:p-4',
+              resolved.contentScrollable ? 'overflow-y-auto overflow-x-hidden' : 'overflow-hidden',
             )}
           >
             {content}

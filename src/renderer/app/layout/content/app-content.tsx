@@ -5,5 +5,5 @@ type AppContentProps = {
 };
 
 export const AppContent = ({ children }: AppContentProps) => {
-  return <section>{children}</section>;
+  return <section className="h-full min-h-0">{children}</section>;
 };

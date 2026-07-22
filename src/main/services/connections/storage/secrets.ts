@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { safeStorage } from 'electron';
 
-import type { SecretsFile } from './connection-models';
+import type { SecretsFile } from '../connection-models';
 
 export class ConnectionSecretsStore {
   private readonly secretsFilePath: string;
